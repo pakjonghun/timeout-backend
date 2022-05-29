@@ -1,4 +1,4 @@
-import { hash } from 'bcryptjs';
+import { hash, compare } from 'bcryptjs';
 import { IsEmail, IsEnum, IsOptional, Length, Matches } from 'class-validator';
 import { Common } from 'src/common/entities/common.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
@@ -34,8 +34,13 @@ export class User extends Common {
   phone: number;
 
   @BeforeInsert()
+  @BeforeUpdate()
   async hashPassword() {
     if (!this.password) return;
     this.password = await hash(this.password, 10);
+  }
+
+  async comparePassword(password: string) {
+    return compare(password, this.password);
   }
 }
