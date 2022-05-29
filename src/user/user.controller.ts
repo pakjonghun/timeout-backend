@@ -1,3 +1,4 @@
+import { GetUser } from 'src/user/decorators/user.decorator';
 import { Role } from './decorators/role.decorator';
 import {
   Controller,
@@ -9,12 +10,16 @@ import {
   Delete,
   Res,
   Req,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
 import { Response } from 'express';
+import { User } from './entities/user.entity';
+import { PagnationDto } from 'src/common/dtos/pagnation.dto';
 
 @Controller('users')
 export class UserController {
@@ -40,14 +45,22 @@ export class UserController {
     res.cookie('jwt', token, { httpOnly: true });
   }
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
+  @Role('Any')
+  @Get('me')
+  async me(@GetUser() user: User) {
+    return user;
   }
 
+  @Role('Client')
+  @Get()
+  async findAllUsers(@Query() query: PagnationDto) {
+    return this.userService.findAllUsers(query);
+  }
+
+  @Role('Manager')
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return null;
+  findUser(@Param('id') id: number) {
+    return this.userService.findUserById(id);
   }
 
   @Patch(':id')

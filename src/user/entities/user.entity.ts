@@ -33,6 +33,10 @@ export class User extends Common {
   @Matches(/^\d{11}$/, { message: '휴대폰 번호는 11자리 입니다.' })
   phone: number;
 
+  @Column({ nullable: true })
+  @IsOptional()
+  avatar?: string;
+
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {

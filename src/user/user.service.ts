@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
+import { PagnationDto } from 'src/common/dtos/pagnation.dto';
 
 @Injectable()
 export class UserService {
@@ -64,12 +65,19 @@ export class UserService {
     );
   }
 
-  async findOneById(id: number) {
+  async findUserById(id: number) {
     return this.userRepository.findOne(id);
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAllUsers(query: PagnationDto) {
+    const { page, perPage } = query;
+    const [users, totalCount] = await this.userRepository.findAndCount({
+      skip: (page - 1) * perPage,
+      take: perPage,
+      select: ['avatar', 'email', 'phone', 'name', 'role'],
+    });
+
+    return { users, totalCount, totalPage: Math.ceil(totalCount / perPage) };
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
