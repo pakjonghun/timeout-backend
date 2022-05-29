@@ -1,3 +1,4 @@
+import { Role } from './decorators/role.decorator';
 import {
   Controller,
   Get,
@@ -7,6 +8,7 @@ import {
   Param,
   Delete,
   Res,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dtos/createUser.dto';
@@ -23,6 +25,12 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
+  @Role('Any')
+  @Post('logout')
+  async logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('jwt');
+  }
+
   @Post('login')
   async login(
     @Res({ passthrough: true }) res: Response,
@@ -30,7 +38,6 @@ export class UserController {
   ) {
     const token = await this.userService.login(loginUserDto);
     res.cookie('jwt', token, { httpOnly: true });
-    return { message: 'success' };
   }
 
   @Get()

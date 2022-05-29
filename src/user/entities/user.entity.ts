@@ -8,7 +8,7 @@ enum Role {
   'Client' = 'Client',
 }
 
-type RoleType = keyof typeof Role;
+export type RoleType = keyof typeof Role;
 
 @Entity()
 export class User extends Common {
