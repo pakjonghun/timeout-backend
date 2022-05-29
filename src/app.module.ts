@@ -33,6 +33,7 @@ import { CommonModule } from './common/common.module';
           database: configService.get('DB_DATABASE'),
           entities: [resolve(__dirname, '**', '*.entity.{ts,js}')],
           synchronize: true,
+          logging: true,
         };
       },
       inject: [ConfigService],
