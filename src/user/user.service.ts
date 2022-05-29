@@ -66,7 +66,10 @@ export class UserService {
   }
 
   async findUserById(id: number) {
-    return this.userRepository.findOne(id);
+    return this.userRepository.findOne(
+      { id },
+      { select: ['avatar', 'email', 'name', 'phone', 'role'] },
+    );
   }
 
   async findAllUsers(query: PagnationDto) {
@@ -80,11 +83,11 @@ export class UserService {
     return { users, totalCount, totalPage: Math.ceil(totalCount / perPage) };
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async removeUser(id: number) {
+    return this.userRepository.delete({ id });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  update(id: number, updateUserDto: UpdateUserDto) {
+    return `This action updates a #${id} user`;
   }
 }
