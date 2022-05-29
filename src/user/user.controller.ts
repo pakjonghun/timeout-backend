@@ -6,10 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dtos/create-user.dto';
+import { CreateUserDto } from './dtos/createUser.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { LoginUserDto } from './dtos/loginUser.dto';
+import { Response } from 'express';
 
 @Controller('users')
 export class UserController {
@@ -18,6 +21,16 @@ export class UserController {
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
+  }
+
+  @Post('login')
+  async login(
+    @Res({ passthrough: true }) res: Response,
+    @Body() loginUserDto: LoginUserDto,
+  ) {
+    const token = await this.userService.login(loginUserDto);
+    res.cookie('jwt', token, { httpOnly: true });
+    return { message: 'success' };
   }
 
   @Get()

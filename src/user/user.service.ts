@@ -1,11 +1,14 @@
+import { JwtService } from '@nestjs/jwt';
+import { LoginUserDto } from './dtos/loginUser.dto';
 import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Connection, Repository } from 'typeorm';
-import { CreateUserDto } from './dtos/create-user.dto';
+import { Repository } from 'typeorm';
+import { CreateUserDto } from './dtos/createUser.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
 
@@ -13,6 +16,7 @@ import { User } from './entities/user.entity';
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -33,6 +37,17 @@ export class UserService {
     return this.findUserInfoById(id);
   }
 
+  async login(loginUserDto: LoginUserDto) {
+    const { email, password } = loginUserDto;
+    const user = await this.findUserByEmail(email);
+    if (!user) throw new NotFoundException('유저가 없습니다.');
+    if (!(await user.comparePassword(password))) {
+      throw new BadRequestException('비밀번호 오류입니다.');
+    }
+
+    return this.jwtService.sign({ id: user.id, role: user.role });
+  }
+
   async findUserInfoById(id: number) {
     return this.userRepository
       .createQueryBuilder('u')
@@ -42,7 +57,7 @@ export class UserService {
       .getOne();
   }
 
-  async findByEmail(email: string) {
+  async findUserByEmail(email: string) {
     return this.userRepository.findOne(
       { email },
       { select: ['password', 'id', 'role'] },
