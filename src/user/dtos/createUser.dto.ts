@@ -7,6 +7,7 @@ export class CreateUserDto extends PickType(User, [
   'name',
   'password',
   'phone',
+  'avatar',
 ]) {
   @IsSamePassword('password', {
     message: '비밀번호가 비밀번호 확인과 같지 않습니다.',

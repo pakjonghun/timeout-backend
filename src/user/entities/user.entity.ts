@@ -1,5 +1,12 @@
 import { hash, compare } from 'bcryptjs';
-import { IsEmail, IsEnum, IsOptional, Length, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  Length,
+  Matches,
+} from 'class-validator';
 import { Common } from 'src/common/entities/common.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
 
@@ -30,8 +37,8 @@ export class User extends Common {
   email: string;
 
   @Column({ unique: true, type: 'bigint' })
-  @Matches(/^\d{11}$/, { message: '휴대폰 번호는 11자리 입니다.' })
-  phone: number;
+  @Matches(/^[0-9]{11}$/, { message: '휴대폰 번호는 11자리 입니다.' })
+  phone: string;
 
   @Column({ nullable: true })
   @IsOptional()

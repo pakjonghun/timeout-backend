@@ -5,13 +5,18 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/createUser.dto';
-import { UpdateUserDto } from './dtos/update-user.dto';
+import { UpdateUserDto } from './dtos/updateUser.dto';
 import { User } from './entities/user.entity';
 import { PagnationDto } from 'src/common/dtos/pagnation.dto';
+import {
+  UpdatePasswordDto,
+  UpdateUserPasswordDto,
+} from './dtos/updatePassword.dto';
 
 @Injectable()
 export class UserService {
@@ -84,10 +89,26 @@ export class UserService {
   }
 
   async removeUser(id: number) {
+    const user = await this.findUserById(id);
+    if (!user) throw new NotFoundException('존재하지 않는 사용자 입니다.');
     return this.userRepository.delete({ id });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async updateUserProfile(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.findUserById(id);
+    if (!user) throw new NotFoundException('존재하지 않는 사용자 입니다.');
+    return this.userRepository.save({ id, ...updateUserDto });
+  }
+
+  async updateMyPassword(id: number, { password }: UpdatePasswordDto) {
+    const user = await this.findUserById(id);
+    if (!user) throw new NotFoundException('존재하지 않는 사용자 입니다.');
+    return this.userRepository.save({ id, password });
+  }
+
+  async updateUserPassword(id: number, { password }: UpdateUserPasswordDto) {
+    const user = await this.findUserById(id);
+    if (!user) throw new NotFoundException('존재하지 않는 사용자 입니다.');
+    return this.userRepository.save({ id, password });
   }
 }
