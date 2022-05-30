@@ -9,22 +9,20 @@ export const GetUser = createParamDecorator(
     const request = ctx.switchToHttp().getRequest<Request>();
     const id = request['user']['id'];
 
-    const result = await getManager()
+    const record = await getManager()
       .createQueryBuilder()
-      .select('u.id')
-      .addSelect('u.email', 'email')
-      .addSelect('u.phone', 'phone')
-      .addSelect('u.role', 'role')
-      .addSelect('u.avatar', 'avatar')
-      .addSelect(
-        'JSON_OBJECT("id",r.id,"startTime",r.startTime)',
-        'todayRecord',
+      .select(['r.id', 'r.startTime', 'r.endTime'])
+      .from(Record, 'r')
+      .innerJoin('r.user', 'user')
+      .where(
+        "DATE_FORMAT(CURDATE(), '%Y-%m-%d')=DATE_FORMAT(r.startTime,'%Y-%m-%d')",
       )
-      .innerJoin((qb) => qb.select().from(Record, 'r'), 'r', 'r.userId=u.id')
-      .from(User, 'u')
-      .where('u.id=:id', { id })
+      .andWhere('r.userId=:id', { id })
+      .orderBy('r.startTime', 'DESC')
+      .limit(1)
       .getRawOne();
 
+    const result = { ...request['user'], record };
     return result;
   },
 );
