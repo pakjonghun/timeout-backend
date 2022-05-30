@@ -14,6 +14,7 @@ import { AuthMiddleware } from './user/middlewares/auth.middleware';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './user/auth.guard';
 import { MessageInterceptor } from './common/interceptors/message.interceptor';
+import { RecordModule } from './record/record.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { MessageInterceptor } from './common/interceptors/message.interceptor';
     }),
     UserModule,
     CommonModule,
+    RecordModule,
   ],
   controllers: [],
   providers: [

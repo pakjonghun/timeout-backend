@@ -8,7 +8,8 @@ import {
   Matches,
 } from 'class-validator';
 import { Common } from 'src/common/entities/common.entity';
-import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
+import { Record } from 'src/record/entities/record.entity';
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 
 enum Role {
   'Manager' = 'Manager',
@@ -43,6 +44,9 @@ export class User extends Common {
   @Column({ nullable: true })
   @IsOptional()
   avatar?: string;
+
+  @OneToMany(() => Record, (record) => record.user)
+  recordList: Record[];
 
   @BeforeInsert()
   @BeforeUpdate()
