@@ -25,9 +25,7 @@ export class RecordController {
     @GetUser() user: User,
   ) {
     const record = await this.recordService.startRecord(user, startRecordDto);
-
-    const a = await this.recordService.findRecordById(record.id);
-    console.log(a);
+    return this.recordService.findRecordById(record.id);
   }
 
   @Get()

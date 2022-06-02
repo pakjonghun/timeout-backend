@@ -21,9 +21,10 @@ export class RecordService {
     return this.recordRepository
       .createQueryBuilder('r')
       .select('r.id')
-      .addSelect(['r.id', 'r.startTime', 'r.endTime', 'r.description'])
+      .addSelect(['r.startTime', 'r.endTime', 'r.description'])
       .addSelect(['u.id', 'u.name'])
       .innerJoin('r.user', 'u')
+      .where('r.id= :id', { id })
       .getOne();
   }
 
