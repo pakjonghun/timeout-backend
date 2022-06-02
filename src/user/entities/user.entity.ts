@@ -1,17 +1,10 @@
 import { hash, compare } from 'bcryptjs';
-import {
-  IsEmail,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  Length,
-  Matches,
-} from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, Length, Matches } from 'class-validator';
 import { Common } from 'src/common/entities/common.entity';
 import { Record } from 'src/record/entities/record.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 
-enum Role {
+export enum Role {
   'Manager' = 'Manager',
   'Client' = 'Client',
 }

@@ -1,18 +1,21 @@
-import { User } from 'src/user/entities/user.entity';
+import { UpdateRecordDto } from './dto/updateRecords.dto';
+import { GetMyRecordsDto } from './dto/getMyRecord.dto';
+import { EndRecordDto } from './dto/endRecord.dto';
 import { Role } from './../user/decorators/role.decorator';
 import {
   Controller,
-  Get,
   Post,
   Body,
   Patch,
+  Get,
+  Query,
   Param,
-  Delete,
 } from '@nestjs/common';
 import { RecordService } from './record.service';
 import { StartRecordDto } from './dto/startRecord.dto';
-import { UpdateRecordDto } from './dto/update-record.dto';
 import { GetUser } from 'src/user/decorators/user.decorator';
+import { MyInfoDto } from 'src/user/decorators/myInfo.dto';
+import { GetUserRecordsDto } from './dto/getUserRecord';
 
 @Controller('records')
 export class RecordController {
@@ -22,29 +25,46 @@ export class RecordController {
   @Post()
   async startRecord(
     @Body() startRecordDto: StartRecordDto,
-    @GetUser() user: User,
+    @GetUser() user: MyInfoDto,
   ) {
-    const record = await this.recordService.startRecord(user, startRecordDto);
+    const record = await this.recordService.startRecord(
+      user.record.id,
+      startRecordDto,
+    );
     return this.recordService.findRecordById(record.id);
   }
 
+  @Role('Any')
+  @Patch('end')
+  async update(@Body() endRecordDto: EndRecordDto, @GetUser() user: MyInfoDto) {
+    const endRecord = await this.recordService.updateRecord(
+      user.record.id,
+      endRecordDto,
+    );
+    return this.recordService.findRecordById(endRecord.id);
+  }
+
+  @Role('Any')
   @Get()
-  findAll() {
-    return this.recordService.findAll();
+  async getMyRecords(
+    @Query() getMyRecordsDto: GetMyRecordsDto,
+    @GetUser() user: MyInfoDto,
+  ) {
+    return this.recordService.findMyRecords(user.id, getMyRecordsDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.recordService.findOne(+id);
+  @Role('Manager')
+  @Get('admin')
+  async getUserRecords(@Query() getUserRecordDto: GetUserRecordsDto) {
+    return this.recordService.findAllRecords(getUserRecordDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRecordDto: UpdateRecordDto) {
-    return this.recordService.update(+id, updateRecordDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.recordService.remove(+id);
+  @Role('Manager')
+  @Patch('admin')
+  async updateRecords(
+    @Param('id') id: number,
+    @Body() updateRecordDto: UpdateRecordDto,
+  ) {
+    return this.recordService.updateRecord(id, updateRecordDto);
   }
 }

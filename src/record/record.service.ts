@@ -1,10 +1,13 @@
+import { GetMyRecordsDto } from './dto/getMyRecord.dto';
 import { Record } from 'src/record/entities/record.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { StartRecordDto } from './dto/startRecord.dto';
-import { UpdateRecordDto } from './dto/update-record.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EndRecordDto } from './dto/endRecord.dto';
+import { QLDB } from 'aws-sdk';
+import { take } from 'rxjs';
 
 @Injectable()
 export class RecordService {
@@ -13,8 +16,11 @@ export class RecordService {
     private readonly recordRepository: Repository<Record>,
   ) {}
 
-  async startRecord(user: User, startRecordDto: StartRecordDto) {
-    return this.recordRepository.save({ user, ...startRecordDto });
+  async startRecord(userId: number, startRecordDto: StartRecordDto) {
+    return this.recordRepository.save({
+      user: { id: userId },
+      ...startRecordDto,
+    });
   }
 
   async findRecordById(id: number) {
@@ -22,25 +28,68 @@ export class RecordService {
       .createQueryBuilder('r')
       .select('r.id')
       .addSelect(['r.startTime', 'r.endTime', 'r.description'])
-      .addSelect(['u.id', 'u.name'])
-      .innerJoin('r.user', 'u')
       .where('r.id= :id', { id })
       .getOne();
   }
 
-  findAll() {
-    return `This action returns all record`;
+  async updateRecord(id: number, body: EndRecordDto) {
+    return this.recordRepository.save({
+      id,
+      ...body,
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} record`;
+  async findMyRecords(
+    userId: number,
+    { page, perPage, ...sort }: GetMyRecordsDto,
+  ) {
+    const keys = Object.keys(sort);
+
+    const tempQuery = this.recordRepository
+      .createQueryBuilder('r')
+      .select(['r.id', 'r.startTime', 'r.endTime', 'r.description'])
+      .innerJoin('r.user', 'u')
+      .where('u.id=:id', { id: userId })
+      .take(perPage)
+      .skip((page - 1) * perPage);
+
+    const [data, totalCount] = keys.length
+      ? await tempQuery.orderBy(`r.${keys[0]}`, sort[keys[0]]).getManyAndCount()
+      : await tempQuery.getManyAndCount();
+
+    return {
+      data,
+      totalCount,
+      totalPage: Math.ceil(totalCount / perPage),
+      message: 'success',
+    };
   }
 
-  update(id: number, updateRecordDto: UpdateRecordDto) {
-    return `This action updates a #${id} record`;
-  }
+  async findAllRecords({ page, perPage, ...sort }: GetMyRecordsDto) {
+    const keys = Object.keys(sort);
+    const tempQuery = this.recordRepository
+      .createQueryBuilder('r')
+      .select([
+        'r.id',
+        'r.startTime',
+        'r.endTime',
+        'r.description',
+        'u.id',
+        'u.name',
+      ])
+      .innerJoin('r.user', 'u')
+      .take(perPage)
+      .skip((page - 1) * perPage);
 
-  remove(id: number) {
-    return `This action removes a #${id} record`;
+    const [data, totalCount] = keys.length
+      ? await tempQuery.orderBy(`r.${keys[0]}`, sort[keys[0]]).getManyAndCount()
+      : await tempQuery.getManyAndCount();
+
+    return {
+      data,
+      totalCount,
+      totalPage: Math.ceil(totalCount / perPage),
+      message: 'success',
+    };
   }
 }

@@ -3,9 +3,7 @@ import { LoginUserDto } from './dtos/loginUser.dto';
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -85,7 +83,12 @@ export class UserService {
       select: ['avatar', 'email', 'phone', 'name', 'role'],
     });
 
-    return { users, totalCount, totalPage: Math.ceil(totalCount / perPage) };
+    return {
+      users,
+      totalCount,
+      totalPage: Math.ceil(totalCount / perPage),
+      message: 'succses',
+    };
   }
 
   async removeUser(id: number) {

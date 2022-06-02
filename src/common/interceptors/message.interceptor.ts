@@ -12,12 +12,16 @@ export class MessageInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Observable<any> | Promise<Observable<any>> {
-    return next
-      .handle()
-      .pipe(
-        map((data) =>
-          Boolean(data) ? { data, message: 'success' } : { message: 'success' },
-        ),
-      );
+    return next.handle().pipe(
+      map((data) => {
+        if (data?.totalPage) {
+          return data;
+        } else {
+          return Boolean(data)
+            ? { data, message: 'success' }
+            : { message: 'success' };
+        }
+      }),
+    );
   }
 }
