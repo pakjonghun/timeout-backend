@@ -18,6 +18,7 @@ import { RecordModule } from './record/record.module';
 import { EventModule } from './event/event.module';
 import { EventGateway } from './event/event.gateway';
 import { DmModule } from './dm/dm.module';
+import { User } from './user/entities/user.entity';
 
 @Module({
   imports: [
@@ -71,7 +72,6 @@ import { DmModule } from './dm/dm.module';
       provide: APP_INTERCEPTOR,
       useClass: MessageInterceptor,
     },
-    EventGateway,
   ],
 })
 export class AppModule implements NestModule {
