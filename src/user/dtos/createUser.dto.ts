@@ -1,7 +1,7 @@
 import { Role } from '../entities/user.entity';
 import { RoleType } from './../entities/user.entity';
 import { PickType } from '@nestjs/swagger';
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { IsSamePassword } from '../decorators/isSamePassword.decorator';
 import { User } from '../entities/user.entity';
 
@@ -10,8 +10,11 @@ export class CreateUserDto extends PickType(User, [
   'name',
   'password',
   'phone',
-  'avatar',
 ]) {
+  @IsOptional()
+  @IsString()
+  avatar: string;
+
   @IsOptional()
   @IsEnum(Role, { message: '유저 역할타입을 지켜주세요' })
   role: RoleType;

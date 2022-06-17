@@ -1,13 +1,10 @@
 import { GetMyRecordsDto } from './dto/getMyRecord.dto';
 import { Record } from 'src/record/entities/record.entity';
-import { User } from 'src/user/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { StartRecordDto } from './dto/startRecord.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EndRecordDto } from './dto/endRecord.dto';
-import { QLDB } from 'aws-sdk';
-import { take } from 'rxjs';
 
 @Injectable()
 export class RecordService {

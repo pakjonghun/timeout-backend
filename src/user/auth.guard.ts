@@ -17,7 +17,6 @@ export class AuthGuard implements CanActivate {
       'role',
       context.getHandler(),
     );
-
     switch (roleInput) {
       case 'Client':
       case 'Manager':

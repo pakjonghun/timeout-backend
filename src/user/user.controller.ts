@@ -48,10 +48,11 @@ export class UserController {
 
   @Post('login')
   async login(
+    @Query('key') key: string,
     @Res({ passthrough: true }) res: Response,
     @Body() loginUserDto: LoginUserDto,
   ) {
-    const token = await this.userService.login(loginUserDto);
+    const token = await this.userService.login(loginUserDto, key);
     res.cookie('jwt', token, { httpOnly: true });
   }
 

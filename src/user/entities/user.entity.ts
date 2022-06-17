@@ -1,5 +1,12 @@
 import { hash, compare } from 'bcryptjs';
-import { IsEmail, IsEnum, IsOptional, Length, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+} from 'class-validator';
 import { Common } from 'src/common/entities/common.entity';
 import { Record } from 'src/record/entities/record.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
@@ -19,7 +26,8 @@ export class User extends Common {
   role: RoleType;
 
   @Column({ select: false })
-  @Length(2, 10, { message: '비밀번호는 3~10글자 입니다.' })
+  @IsString()
+  @Length(2, 10, { message: '비밀번호는 2~10글자 입니다.' })
   password: string;
 
   @Column()

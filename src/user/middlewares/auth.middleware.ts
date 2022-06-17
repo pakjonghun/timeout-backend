@@ -12,6 +12,7 @@ export class AuthMiddleware implements NestMiddleware {
         req['user'] = { id, role };
       }
     }
+
     next();
   }
 }

@@ -15,12 +15,14 @@ import {
   UpdatePasswordDto,
   UpdateUserPasswordDto,
 } from './dtos/updatePassword.dto';
+import { EventGateway } from 'src/event/event.gateway';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly eventGateway: EventGateway,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -41,7 +43,7 @@ export class UserService {
     return this.findUserInfoById(id);
   }
 
-  async login(loginUserDto: LoginUserDto) {
+  async login(loginUserDto: LoginUserDto, key: string) {
     const { email, password } = loginUserDto;
     const user = await this.findUserByEmail(email);
     if (!user) throw new NotFoundException('유저가 없습니다.');
@@ -49,7 +51,19 @@ export class UserService {
       throw new BadRequestException('비밀번호 오류입니다.');
     }
 
+    // const loginManagerIdList = await this.eventGateway.getLoginManagerIdList();
+    // const managerList = await this.getLoginManager(loginManagerIdList);
+    // this.eventGateway.login(key, user.id, user.role === 'Manager', managerList);
     return this.jwtService.sign({ id: user.id, role: user.role });
+  }
+
+  async getLoginManager(idList: any) {
+    this.eventGateway.getLoginManagerIdList();
+    return this.userRepository
+      .createQueryBuilder('u')
+      .select('u.name', 'u.role')
+      .where('u.id IN (:...idList)', { idList: Array.from(idList) })
+      .getMany();
   }
 
   async findUserInfoById(id: number) {

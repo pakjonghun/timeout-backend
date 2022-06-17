@@ -16,10 +16,14 @@ import { StartRecordDto } from './dto/startRecord.dto';
 import { GetUser } from 'src/user/decorators/user.decorator';
 import { MyInfoDto } from 'src/user/decorators/myInfo.dto';
 import { GetUserRecordsDto } from './dto/getUserRecord';
+import { EventGateway } from 'src/event/event.gateway';
 
 @Controller('records')
 export class RecordController {
-  constructor(private readonly recordService: RecordService) {}
+  constructor(
+    private readonly recordService: RecordService,
+    private readonly eventGateway: EventGateway,
+  ) {}
 
   @Role('Any')
   @Post()
@@ -28,9 +32,10 @@ export class RecordController {
     @GetUser() user: MyInfoDto,
   ) {
     const record = await this.recordService.startRecord(
-      user.record.id,
+      user.id,
       startRecordDto,
     );
+    this.eventGateway.startWork(user.id);
     return this.recordService.findRecordById(record.id);
   }
 
@@ -41,6 +46,7 @@ export class RecordController {
       user.record.id,
       endRecordDto,
     );
+    this.eventGateway.endWork(user.id);
     return this.recordService.findRecordById(endRecord.id);
   }
 

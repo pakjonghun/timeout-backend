@@ -15,6 +15,9 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './user/auth.guard';
 import { MessageInterceptor } from './common/interceptors/message.interceptor';
 import { RecordModule } from './record/record.module';
+import { EventModule } from './event/event.module';
+import { EventGateway } from './event/event.gateway';
+import { DmModule } from './dm/dm.module';
 
 @Module({
   imports: [
@@ -24,6 +27,7 @@ import { RecordModule } from './record/record.module';
       ignoreEnvFile: process.env.NODE_ENV !== 'development',
       validationSchema: Joi.object({
         NODE_ENV: Joi.valid('development', 'production').required(),
+        PORT: Joi.string().required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.string().required(),
         DB_USERNAME: Joi.string().required(),
@@ -46,7 +50,7 @@ import { RecordModule } from './record/record.module';
           database: configService.get('DB_DATABASE'),
           entities: [resolve(__dirname, '**', '*.entity.{ts,js}')],
           synchronize: true,
-          logging: true,
+          logging: false,
         };
       },
       inject: [ConfigService],
@@ -54,6 +58,8 @@ import { RecordModule } from './record/record.module';
     UserModule,
     CommonModule,
     RecordModule,
+    EventModule,
+    DmModule,
   ],
   controllers: [],
   providers: [
@@ -65,6 +71,7 @@ import { RecordModule } from './record/record.module';
       provide: APP_INTERCEPTOR,
       useClass: MessageInterceptor,
     },
+    EventGateway,
   ],
 })
 export class AppModule implements NestModule {

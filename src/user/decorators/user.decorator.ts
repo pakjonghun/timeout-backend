@@ -7,7 +7,6 @@ export const GetUser = createParamDecorator(
   async (data: unknown, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<Request>();
     const id = request['user']['id'];
-
     const record = await getManager()
       .createQueryBuilder()
       .select('r.id', 'id')
@@ -24,7 +23,7 @@ export const GetUser = createParamDecorator(
       .limit(1)
       .getRawOne();
 
-    const result = { ...request['user'], record };
+    const result = { ...request['user'], record: record || null };
     return result;
   },
 );
