@@ -14,6 +14,8 @@ import { Socket, Server } from 'socket.io';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { SocketLoginDto } from './dtos/login.dto';
+import { retryWhen } from 'rxjs';
+import { Record } from 'src/record/entities/record.entity';
 
 @Injectable()
 @WebSocketGateway({
@@ -37,12 +39,14 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() { id, role }: SocketLoginDto,
   ) {
     console.log('reconnect');
-    if (!id || !role)
-      return socket.emit('error', '실시간 서버 접속을 실패했습니다');
+    if (!id || !role) {
+      return socket.emit('error', '소켓 서버 접속을 실패했습니다 id role');
+    }
     socket.handshake.auth.id = id;
     socket.handshake.auth.role = role;
     socket.join('login');
     if (role === 'Manager') socket.join('manager');
+    this.addUserToList({ role, socketId: socket.id, id });
   }
 
   private addUserToList({
@@ -69,14 +73,23 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  @SubscribeMessage('notice')
+  handleNotice(@ConnectedSocket() socket: Socket, @MessageBody() msg: string) {
+    if (socket.handshake.auth.role !== 'Client') return;
+    if (!msg.trim()) socket.emit('error', '공지사항을 입력하세요');
+    socket.broadcast.to('login').emit('notice', msg);
+  }
+
   @SubscribeMessage('login')
   async handleLogin(
     @ConnectedSocket() socket: Socket,
     @MessageBody() msg: SocketLoginDto,
   ) {
     const { id, role } = msg;
-    if (!id || !role)
-      return socket.emit('error', '실시간 서버 접속을 실패했습니다');
+    if (!id || !role) {
+      console.log('login');
+      return socket.emit('error', '소켓 서버 접속을 실패했습니다. id, role');
+    }
     socket.handshake.auth.id = id;
     socket.handshake.auth.role = role;
     socket.join('login');
@@ -85,9 +98,12 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('login');
 
     const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) return socket.emit('error', '실시간 서버 접속을 실패했습니다');
+    if (!user) {
+      return socket.emit('error', '소켓 서버 접속을 실패했습니다 user');
+    }
+
     socket.broadcast
-      .to('login')
+      .to('manager')
       .emit('login', `${user.name} ${user.role}님이 로그인 했습니다.`);
 
     this.addUserToList({ id, socketId: socket.id, role });
@@ -117,20 +133,35 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.server.in('manager').allSockets();
   }
 
-  login(key: string, id: number, isManager = false, managerList: any[]) {
-    const socketId = this.socketList.get(key);
-    this.socketList.set(key, id);
-    this.socketList.set(id, socketId);
-    this.server.in(socketId).socketsJoin('login');
-    if (isManager) this.server.in(socketId).socketsJoin('manager');
+  async startWork(id: number) {
+    const user = this.manageUserList.getUser('login', id);
+    if (!user) return;
+    this.manageUserList.addUser({
+      room: 'working',
+      userId: id,
+      socketId: user.socketId,
+    });
+    this.server.in(user.socketId).socketsJoin('working');
 
-    this.server.sockets.to('login').emit('managerList', managerList);
-  }
+    const workingUsers = await this.userRepository
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.name', 'user.phone', 'user.email'])
+      .innerJoinAndSelect(
+        'user.recordList',
+        'record',
+        "DATE_FORMAT(record.startTime,'%Y-%m-%d')=DATE_FORMAT(now(),'%Y-%m-%d')",
+      )
+      .getMany();
 
-  startWork(id: number) {
-    const socketId = this.socketList.get(id);
-    this.server.in(socketId).socketsJoin('work');
-    this.server.sockets.to('work').emit('hi', 'rehi');
+    if (!workingUsers.length) {
+      this.server
+        .in(user.socketId)
+        .emit('notice', '초과근무중인 사람이 없습니다.');
+      return;
+    }
+    // console.log('workingUsers', workingUsers.length);
+    console.log(this.manageUserList.getUsers('manager'));
+    this.server.in('manager').emit('workingUsers', workingUsers);
   }
 
   endWork(id: number) {

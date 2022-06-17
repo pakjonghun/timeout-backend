@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-type UserListRoom = 'login' | 'manager';
+type UserListRoom = 'login' | 'manager' | 'working' | 'done';
 type UserOfUserList = { id: number; socketId: string };
 
 @Injectable()
@@ -8,9 +8,12 @@ export class ManageUserList {
   private userList: Record<UserListRoom, UserOfUserList[]> = {
     login: [],
     manager: [],
+    working: [],
+    done: [],
   };
 
   getUsers(room: UserListRoom) {
+    console.log(this.userList);
     return [...this.userList[room]];
   }
 
@@ -23,7 +26,7 @@ export class ManageUserList {
   }
 
   deleteUser(room: UserListRoom, id: number) {
-    const index = this.userList[room].findIndex((user) => user.id === index);
+    const index = this.userList[room].findIndex((user) => user.id === id);
     if (index < 0) return false;
     this.userList[room].splice(index, 1);
     return true;
