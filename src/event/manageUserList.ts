@@ -5,7 +5,7 @@ type UserOfUserList = { id: number; socketId: string };
 
 @Injectable()
 export class ManageUserList {
-  private userList: Record<UserListRoom, UserOfUserList[]> = {
+  userList: Record<UserListRoom, UserOfUserList[]> = {
     login: [],
     manager: [],
     working: [],
@@ -13,7 +13,6 @@ export class ManageUserList {
   };
 
   getUsers(room: UserListRoom) {
-    console.log(this.userList);
     return [...this.userList[room]];
   }
 
@@ -45,6 +44,8 @@ export class ManageUserList {
     userId: number;
     socketId: string;
   }) {
+    const isExist = this.getUser(room, userId);
+    if (Object.keys(isExist).length) return;
     this.userList[room].push({ id: userId, socketId });
   }
 }

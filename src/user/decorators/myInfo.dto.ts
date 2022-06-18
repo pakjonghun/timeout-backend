@@ -10,5 +10,5 @@ class MyInfoRecordDto extends PickType(Record, [
 ]) {}
 
 export class MyInfoDto extends PickType(User, ['id', 'role']) {
-  record: MyInfoRecordDto;
+  recordList: MyInfoRecordDto;
 }

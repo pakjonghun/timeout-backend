@@ -1,3 +1,4 @@
+import { Record } from 'src/record/entities/record.entity';
 import { ManageUserList } from './manageUserList';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,8 +15,6 @@ import { Socket, Server } from 'socket.io';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { SocketLoginDto } from './dtos/login.dto';
-import { retryWhen } from 'rxjs';
-import { Record } from 'src/record/entities/record.entity';
 
 @Injectable()
 @WebSocketGateway({
@@ -31,10 +30,8 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer() public server: Server;
 
-  private socketList = new Map();
-
   @SubscribeMessage('reConnect')
-  handleReconnect(
+  async handleReconnect(
     @ConnectedSocket() socket: Socket,
     @MessageBody() { id, role }: SocketLoginDto,
   ) {
@@ -45,8 +42,13 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.handshake.auth.id = id;
     socket.handshake.auth.role = role;
     socket.join('login');
-    if (role === 'Manager') socket.join('manager');
     this.addUserToList({ role, socketId: socket.id, id });
+    if (role === 'Manager') {
+      socket.join('manager');
+      const workingUserList = await this.getWorkingUserList();
+      socket.emit('workingUsers', workingUserList);
+    }
+    console.log('reconnect', this.manageUserList.userList);
   }
 
   private addUserToList({
@@ -93,7 +95,11 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.handshake.auth.id = id;
     socket.handshake.auth.role = role;
     socket.join('login');
-    if (role === 'Manager') socket.join('manager');
+    if (role === 'Manager') {
+      socket.join('manager');
+      // const workingUserList = await this.getWorkingUserList();
+      // socket.emit('workingUsers', workingUserList);
+    }
 
     console.log('login');
 
@@ -126,11 +132,32 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() socket: Socket,
     @MessageBody() data: string,
   ) {
-    console.log('connected');
+    console.log('connect');
   }
 
   async getLoginManagerIdList() {
     return this.server.in('manager').allSockets();
+  }
+
+  async getWorkingUserList() {
+    const workingUsers = await this.userRepository
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.name', 'user.phone', 'user.email'])
+      .innerJoinAndSelect(
+        (bq) =>
+          bq
+            .select('r.endTime,r.userId,r.startTime')
+            .from(Record, 'r')
+            .where('r.endTime IS NULL'),
+        'record',
+        'record.userId=user.id',
+      )
+      .orderBy('record.startTime', 'DESC')
+      .getMany();
+
+    console.log('workingUsers', workingUsers);
+
+    return workingUsers;
   }
 
   async startWork(id: number) {
@@ -143,31 +170,40 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
     this.server.in(user.socketId).socketsJoin('working');
 
-    const workingUsers = await this.userRepository
-      .createQueryBuilder('user')
-      .select(['user.id', 'user.name', 'user.phone', 'user.email'])
-      .innerJoinAndSelect(
-        'user.recordList',
-        'record',
-        "DATE_FORMAT(record.startTime,'%Y-%m-%d')=DATE_FORMAT(now(),'%Y-%m-%d')",
-      )
-      .getMany();
+    const workingUserList = await this.getWorkingUserList();
 
-    if (!workingUsers.length) {
-      this.server
-        .in(user.socketId)
-        .emit('notice', '초과근무중인 사람이 없습니다.');
-      return;
-    }
-    // console.log('workingUsers', workingUsers.length);
-    console.log(this.manageUserList.getUsers('manager'));
-    this.server.in('manager').emit('workingUsers', workingUsers);
+    this.server.in('manager').emit('workingUsers', workingUserList);
+    this.server
+      .in('manager')
+      .emit(
+        'notice',
+        `${workingUserList[0].name}님이 초과근무를 시작했습니다.`,
+      );
+    console.log('start', user, this.manageUserList.userList);
   }
 
-  endWork(id: number) {
-    const socketId = this.socketList.get(id);
-    this.server.in(socketId).socketsLeave('work');
-    this.server.in(socketId).socketsJoin('endWork');
-    this.server.sockets.to('endWork').emit('hi', 'rehi');
+  async endWork(id: number) {
+    const user = this.manageUserList.getUser('working', id);
+    if (!user) return;
+
+    const userInfo = await this.userRepository.findOne({ id });
+    if (!userInfo) return;
+
+    this.server
+      .in('manager')
+      .emit('notice', `${userInfo.name}님이 초과근무를 종료하였습니다.`);
+    this.server.in(user.socketId).socketsLeave('work');
+    this.server.in(user.socketId).socketsJoin('done');
+    this.manageUserList.deleteUser('working', id);
+    this.manageUserList.addUser({
+      room: 'done',
+      userId: id,
+      socketId: user.socketId,
+    });
+
+    const workingUserList = await this.getWorkingUserList();
+    this.server.in('manager').emit('workingUsers', workingUserList);
+
+    console.log('end', user, this.manageUserList.userList);
   }
 }

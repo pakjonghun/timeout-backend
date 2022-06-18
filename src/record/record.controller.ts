@@ -10,6 +10,7 @@ import {
   Get,
   Query,
   Param,
+  NotFoundException,
 } from '@nestjs/common';
 import { RecordService } from './record.service';
 import { StartRecordDto } from './dto/startRecord.dto';
@@ -42,10 +43,15 @@ export class RecordController {
   @Role('Any')
   @Patch('end')
   async update(@Body() endRecordDto: EndRecordDto, @GetUser() user: MyInfoDto) {
+    if (!user.recordList.id) {
+      throw new NotFoundException('초과근무 기록이 없습니다.');
+    }
+
     const endRecord = await this.recordService.updateRecord(
-      user.record.id,
+      user.recordList.id,
       endRecordDto,
     );
+
     this.eventGateway.endWork(user.id);
     return this.recordService.findRecordById(endRecord.id);
   }
