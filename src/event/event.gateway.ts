@@ -48,7 +48,6 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const workingUserList = await this.getWorkingUserList();
       socket.emit('workingUsers', workingUserList);
     }
-    console.log('reconnect', this.manageUserList.userList);
   }
 
   private addUserToList({
@@ -77,7 +76,7 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('notice')
   handleNotice(@ConnectedSocket() socket: Socket, @MessageBody() msg: string) {
-    if (socket.handshake.auth.role !== 'Client') return;
+    if (socket.handshake.auth.role !== 'Manager') return;
     if (!msg.trim()) socket.emit('error', '공지사항을 입력하세요');
     socket.broadcast.to('login').emit('notice', msg);
   }
@@ -100,8 +99,6 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // const workingUserList = await this.getWorkingUserList();
       // socket.emit('workingUsers', workingUserList);
     }
-
-    console.log('login');
 
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
@@ -155,8 +152,6 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .orderBy('record.startTime', 'DESC')
       .getMany();
 
-    console.log('workingUsers', workingUsers);
-
     return workingUsers;
   }
 
@@ -179,7 +174,6 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
         'notice',
         `${workingUserList[0].name}님이 초과근무를 시작했습니다.`,
       );
-    console.log('start', user, this.manageUserList.userList);
   }
 
   async endWork(id: number) {
@@ -203,7 +197,5 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const workingUserList = await this.getWorkingUserList();
     this.server.in('manager').emit('workingUsers', workingUserList);
-
-    console.log('end', user, this.manageUserList.userList);
   }
 }

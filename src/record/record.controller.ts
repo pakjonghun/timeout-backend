@@ -62,7 +62,12 @@ export class RecordController {
     @Query() getMyRecordsDto: GetMyRecordsDto,
     @GetUser() user: MyInfoDto,
   ) {
-    return this.recordService.findMyRecords(user.id, getMyRecordsDto);
+    console.log('user', user);
+    if (user.role === 'Client') {
+      return this.recordService.findMyRecords(user.id, getMyRecordsDto);
+    }
+
+    return this.recordService.findAllRecords(getMyRecordsDto);
   }
 
   @Role('Manager')
