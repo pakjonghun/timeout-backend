@@ -86,9 +86,9 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() socket: Socket,
     @MessageBody() msg: SocketLoginDto,
   ) {
+    console.log('login', msg);
     const { id, role } = msg;
     if (!id || !role) {
-      console.log('login');
       return socket.emit('error', '소켓 서버 접속을 실패했습니다. id, role');
     }
     socket.handshake.auth.id = id;
@@ -197,5 +197,16 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const workingUserList = await this.getWorkingUserList();
     this.server.in('manager').emit('workingUsers', workingUserList);
+  }
+
+  @SubscribeMessage('logout')
+  async handleLogout(@ConnectedSocket() socket: Socket) {
+    socket.leave('login');
+    this.manageUserList.deleteUser('login', socket.handshake.auth.id);
+
+    if (socket.handshake.auth.role === 'Manager') {
+      socket.leave('manager');
+      this.manageUserList.deleteUser('manager', socket.handshake.auth.id);
+    }
   }
 }

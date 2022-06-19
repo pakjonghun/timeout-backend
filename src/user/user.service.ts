@@ -50,11 +50,11 @@ export class UserService {
     if (!(await user.comparePassword(password))) {
       throw new BadRequestException('비밀번호 오류입니다.');
     }
-
-    // const loginManagerIdList = await this.eventGateway.getLoginManagerIdList();
-    // const managerList = await this.getLoginManager(loginManagerIdList);
-    // this.eventGateway.login(key, user.id, user.role === 'Manager', managerList);
-    return this.jwtService.sign({ id: user.id, role: user.role });
+    const token = await this.jwtService.signAsync({
+      id: user.id,
+      role: user.role,
+    });
+    return { token, user };
   }
 
   async getLoginManager(idList: any) {

@@ -67,7 +67,7 @@ export class RecordService {
         ? await tempQuery
             .orderBy(`r.${sortKey}`, `${sortValue}`)
             .getManyAndCount()
-        : await tempQuery.getManyAndCount();
+        : await tempQuery.orderBy('r.startTime', 'DESC').getManyAndCount();
 
     return {
       data,
@@ -104,7 +104,7 @@ export class RecordService {
               sortValue,
             )
             .getManyAndCount()
-        : await tempQuery.getManyAndCount();
+        : await tempQuery.orderBy('r.startTime', 'DESC').getManyAndCount();
 
     return {
       data,

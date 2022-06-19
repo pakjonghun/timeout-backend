@@ -1,3 +1,4 @@
+import { EventGateway } from 'src/event/event.gateway';
 import { GetUser } from 'src/user/decorators/user.decorator';
 import { Role } from './decorators/role.decorator';
 import {
@@ -33,6 +34,7 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly configService: ConfigService,
+    private readonly eventGateway: EventGateway,
   ) {}
 
   @Post()
@@ -52,8 +54,9 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
     @Body() loginUserDto: LoginUserDto,
   ) {
-    const token = await this.userService.login(loginUserDto, key);
+    const { token, user } = await this.userService.login(loginUserDto, key);
     res.cookie('jwt', token, { httpOnly: true });
+    return { id: user.id, role: user.role };
   }
 
   @Role('Any')
