@@ -11,6 +11,7 @@ import {
   Query,
   Param,
   NotFoundException,
+  Delete,
 } from '@nestjs/common';
 import { RecordService } from './record.service';
 import { StartRecordDto } from './dto/startRecord.dto';
@@ -18,6 +19,7 @@ import { GetUser } from 'src/user/decorators/user.decorator';
 import { MyInfoDto } from 'src/user/decorators/myInfo.dto';
 import { GetUserRecordsDto } from './dto/getUserRecord';
 import { EventGateway } from 'src/event/event.gateway';
+import { DeleteManyRecordsDto } from './dto/deleteManyRecords.dto';
 
 @Controller('records')
 export class RecordController {
@@ -70,17 +72,25 @@ export class RecordController {
   }
 
   @Role('Manager')
-  @Get('admin')
-  async getUserRecords(@Query() getUserRecordDto: GetUserRecordsDto) {
-    return this.recordService.findAllRecords(getUserRecordDto);
-  }
-
-  @Role('Manager')
-  @Patch('admin')
+  @Patch('/admin/edit/:id')
   async updateRecords(
     @Param('id') id: number,
     @Body() updateRecordDto: UpdateRecordDto,
   ) {
-    return this.recordService.updateRecord(id, updateRecordDto);
+    await this.recordService.updateRecord(id, updateRecordDto);
+  }
+
+  @Role('Manager')
+  @Delete('/admin/delete')
+  async removeMany(@Query('ids') ids: string) {
+    console.log('ids', ids);
+    await this.recordService.removeRecords(ids);
+  }
+
+  @Role('Manager')
+  @Delete('/admin/:id')
+  async removeRecord(@Param('id') id: number) {
+    console.log('idididid', id);
+    return this.recordService.removeRecord({ id });
   }
 }

@@ -36,9 +36,13 @@ export class RecordService {
   }
 
   async updateRecord(id: number, body: EndRecordDto) {
+    console.log(body);
     const isExist = await this.recordRepository.findOne({ id });
+
     if (!isExist) throw new NotFoundException('없는 기록 입니다.');
-    isExist.endTime = body.endTime;
+    if (body.endTime) isExist.endTime = body.endTime;
+    if (body.startTime) isExist.startTime = body.startTime;
+    if (body.description) isExist.description = body.description;
     return this.recordRepository.save(isExist);
   }
 
@@ -112,5 +116,31 @@ export class RecordService {
       totalPage: Math.ceil(totalCount / perPage),
       message: 'success',
     };
+  }
+
+  async removeRecord({ id }: { id: number }) {
+    const isExist = await this.recordRepository.count({ id });
+    if (!isExist) throw new NotFoundException('없는 기록 입니다.');
+    this.recordRepository.delete({ id });
+  }
+
+  async removeRecords(ids: string) {
+    console.log(ids);
+    const count = await this.recordRepository
+      .createQueryBuilder('r')
+      .select('r.id')
+      .where('r.id IN(:...ids)', { ids: ids.split(',') })
+      .getCount();
+
+    console.log(count, ids.split(',').length);
+    if (count !== ids.split(',').length)
+      throw new NotFoundException('없는 기록 이 존재합니다.');
+
+    await this.recordRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Record)
+      .where('id IN (:...ids)', { ids: ids.split(',').map((id) => +id) })
+      .execute();
   }
 }

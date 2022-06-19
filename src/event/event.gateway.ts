@@ -209,4 +209,55 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.manageUserList.deleteUser('manager', socket.handshake.auth.id);
     }
   }
+
+  @SubscribeMessage('editRecord')
+  async handleEditRecord(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() { id, date }: { id: number; date: string },
+  ) {
+    const editedUser = await this.userRepository.findOne({ id });
+    if (!editedUser) socket.emit('error', '없는 유저입니다.');
+    const editedUserInfo = this.manageUserList.getUser('login', id);
+    if (editedUserInfo) {
+      this.server
+        .in(editedUserInfo.socketId)
+        .emit(
+          'notice',
+          `${date} 근무 기록이 수정되었습니다. 새로고침 한번 해주세요.`,
+        );
+    }
+
+    const workingUserList = await this.getWorkingUserList();
+    this.server.in('manager').emit('workingUsers', workingUserList);
+  }
+
+  @SubscribeMessage('deleteRecord')
+  async handleDeleteRecord(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() { id, date }: { id: number; date: string },
+  ) {
+    const editedUser = await this.userRepository.findOne({ id });
+    if (!editedUser) socket.emit('error', '없는 유저입니다.');
+
+    const editedUserInfo = this.manageUserList.getUser('login', id);
+    if (editedUserInfo) {
+      this.server
+        .in(editedUserInfo.socketId)
+        .emit(
+          'notice',
+          `${date} 근무 기록이 수정되었습니다. 새로고침 한번 해주세요.`,
+        );
+    }
+
+    const workingUserList = await this.getWorkingUserList();
+    this.server.in('manager').emit('workingUsers', workingUserList);
+  }
+
+  @SubscribeMessage('deleteRecords')
+  async handleDeleteRecords(@ConnectedSocket() socket: Socket) {
+    socket.broadcast.emit(
+      'notice',
+      '다량의 기록을 삭제하였습니다 새로고침 한번 해주세요',
+    );
+  }
 }
