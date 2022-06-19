@@ -1,6 +1,11 @@
 import { GetMyRecordsDto } from './dto/getMyRecord.dto';
 import { Record } from 'src/record/entities/record.entity';
-import { Injectable } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Injectable,
+  NotFoundException,
+  UseInterceptors,
+} from '@nestjs/common';
 import { StartRecordDto } from './dto/startRecord.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,10 +19,11 @@ export class RecordService {
   ) {}
 
   async startRecord(userId: number, startRecordDto: StartRecordDto) {
-    return this.recordRepository.save({
+    const tempObj = this.recordRepository.create({
       user: { id: userId },
       ...startRecordDto,
     });
+    return this.recordRepository.save(tempObj);
   }
 
   async findRecordById(id: number) {
@@ -30,29 +36,38 @@ export class RecordService {
   }
 
   async updateRecord(id: number, body: EndRecordDto) {
-    return this.recordRepository.save({
-      id,
-      ...body,
-    });
+    const isExist = await this.recordRepository.findOne({ id });
+    if (!isExist) throw new NotFoundException('없는 기록 입니다.');
+    isExist.endTime = body.endTime;
+    return this.recordRepository.save(isExist);
   }
 
   async findMyRecords(
     userId: number,
-    { page, perPage, ...sort }: GetMyRecordsDto,
+    { page, perPage, sortValue, sortKey }: GetMyRecordsDto,
   ) {
-    const keys = Object.keys(sort);
-
     const tempQuery = this.recordRepository
       .createQueryBuilder('r')
-      .select(['r.id', 'r.startTime', 'r.endTime', 'r.description'])
+      .select('r.id', 'id')
+      .select([
+        'r.id',
+        'r.startTime',
+        'r.endTime',
+        'r.date',
+        'r.duration',
+        'r.status',
+      ])
       .innerJoin('r.user', 'u')
       .where('u.id=:id', { id: userId })
       .take(perPage)
       .skip((page - 1) * perPage);
 
-    const [data, totalCount] = keys.length
-      ? await tempQuery.orderBy(`r.${keys[0]}`, sort[keys[0]]).getManyAndCount()
-      : await tempQuery.getManyAndCount();
+    const [data, totalCount] =
+      sortValue && sortKey
+        ? await tempQuery
+            .orderBy(`r.${sortKey}`, `${sortValue}`)
+            .getManyAndCount()
+        : await tempQuery.getManyAndCount();
 
     return {
       data,
@@ -62,15 +77,18 @@ export class RecordService {
     };
   }
 
-  async findAllRecords({ page, perPage, ...sort }: GetMyRecordsDto) {
-    const keys = Object.keys(sort);
+  async findAllRecords({ page, perPage, sortValue, sortKey }: GetMyRecordsDto) {
+    console.log(sortKey, sortValue);
     const tempQuery = this.recordRepository
       .createQueryBuilder('r')
       .select([
         'r.id',
+        'r.date',
         'r.startTime',
         'r.endTime',
         'r.description',
+        'r.duration',
+        'r.status',
         'u.id',
         'u.name',
       ])
@@ -78,9 +96,15 @@ export class RecordService {
       .take(perPage)
       .skip((page - 1) * perPage);
 
-    const [data, totalCount] = keys.length
-      ? await tempQuery.orderBy(`r.${keys[0]}`, sort[keys[0]]).getManyAndCount()
-      : await tempQuery.getManyAndCount();
+    const [data, totalCount] =
+      sortValue && sortKey
+        ? await tempQuery
+            .orderBy(
+              `${sortKey == 'userName' ? 'u.name' : 'r.' + sortKey}`,
+              sortValue,
+            )
+            .getManyAndCount()
+        : await tempQuery.getManyAndCount();
 
     return {
       data,
