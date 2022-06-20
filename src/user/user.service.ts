@@ -112,8 +112,18 @@ export class UserService {
   }
 
   async updateUserProfile(id: number, updateUserDto: UpdateUserDto) {
+    const { email, phone } = updateUserDto;
     const user = await this.findUserById(id);
     if (!user) throw new NotFoundException('존재하지 않는 사용자 입니다.');
+    const isExist = await this.userRepository
+      .createQueryBuilder('u')
+      .select(['u.id', 'u.email', 'u.phone'])
+      .where('u.email=:email OR u.phone=:phone', { email, phone })
+      .getCount();
+
+    if (isExist)
+      throw new BadRequestException('폰번호나 이메일이 이미 존재합니다.');
+
     return this.userRepository.save({ id, ...updateUserDto });
   }
 
@@ -127,5 +137,16 @@ export class UserService {
     const user = await this.findUserById(id);
     if (!user) throw new NotFoundException('존재하지 않는 사용자 입니다.');
     return this.userRepository.save({ id, password });
+  }
+
+  async getPrivateInfo(id: number) {
+    const user = await this.userRepository
+      .createQueryBuilder('u')
+      .select(['u.id', 'u.email', 'u.phone', 'u.name'])
+      .where('u.id=:id', { id })
+      .getOne();
+
+    if (!user) throw new NotFoundException('없는 유저 입니다.');
+    return user;
   }
 }

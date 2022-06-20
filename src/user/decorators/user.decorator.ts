@@ -13,6 +13,7 @@ export const GetUser = createParamDecorator(
       .createQueryBuilder(User, 'u')
       .select('u.id', 'id')
       .addSelect('u.role', 'role')
+      .addSelect('u.avatar', 'avatar')
       .addSelect(
         `
         IF(r.id IS NULL,

@@ -49,7 +49,7 @@ import { DmModule } from './dm/dm.module';
           database: configService.get('DB_DATABASE'),
           entities: [resolve(__dirname, '**', '*.entity.{ts,js}')],
           synchronize: true,
-          logging: true,
+          logging: false,
         };
       },
       inject: [ConfigService],

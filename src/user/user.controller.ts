@@ -34,8 +34,13 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly configService: ConfigService,
-    private readonly eventGateway: EventGateway,
   ) {}
+
+  @Role('Any')
+  @Get('private')
+  async getPrivateInfo(@GetUser() user: User) {
+    return this.userService.getPrivateInfo(user.id);
+  }
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
@@ -75,7 +80,7 @@ export class UserController {
   }
 
   @Role('Any')
-  @Patch()
+  @Patch('password')
   async updateMyPassword(
     @GetUser() user: User,
     @Body() updatePasswordDto: UpdatePasswordDto,
