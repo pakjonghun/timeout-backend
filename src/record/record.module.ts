@@ -9,5 +9,6 @@ import { EventModule } from 'src/event/event.module';
   imports: [TypeOrmModule.forFeature([Record]), EventModule],
   controllers: [RecordController],
   providers: [RecordService],
+  exports: [RecordService],
 })
 export class RecordModule {}

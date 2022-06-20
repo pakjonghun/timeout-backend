@@ -46,7 +46,8 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (role === 'Manager') {
       socket.join('manager');
       const workingUserList = await this.getWorkingUserList();
-      socket.emit('workingUsers', workingUserList);
+      const doneUserList = await this.getDoneUserList();
+      socket.emit('workingUsers', { workingUserList, doneUserList });
     }
   }
 
@@ -136,22 +137,78 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.server.in('manager').allSockets();
   }
 
+  async getDoneUserList() {
+    const doneUsers = await this.userRepository
+      .createQueryBuilder('u')
+      .select('u.id', 'id')
+      .addSelect('u.name', 'name')
+      .addSelect('u.phone', 'phone')
+      .addSelect('u.email', 'email')
+      .addSelect('u.role', 'role')
+      .addSelect('SUM(record.duration)', 'sumDuration')
+      .addSelect('COUNT(record.id)listCount')
+      .addSelect(
+        `JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id',record.id,
+            'startTime',record.startTime,
+            'endTime',record.endTime,
+            'duration',record.duration
+          )
+      ) recordList`,
+      )
+      .innerJoin(
+        (qb) =>
+          qb
+            .select()
+            .from(Record, 'r')
+            .where(
+              'DATE_FORMAT(r.startTime,"%Y-%m-%d")=DATE_FORMAT(NOW(),"%Y-%m-%d")',
+            )
+            .andWhere('r.endTime IS NOT NULL'),
+        'record',
+        'record.userId = u.id',
+      )
+      .groupBy('u.id')
+      .orderBy('u.name', 'ASC')
+      .getRawMany();
+    return doneUsers;
+  }
+
   async getWorkingUserList() {
     const workingUsers = await this.userRepository
-      .createQueryBuilder('user')
-      .select(['user.id', 'user.name', 'user.phone', 'user.email'])
-      .innerJoinAndSelect(
-        (bq) =>
-          bq
-            .select('r.endTime,r.userId,r.startTime')
-            .from(Record, 'r')
-            .where('r.endTime IS NULL'),
-        'record',
-        'record.userId=user.id',
+      .createQueryBuilder('u')
+      .select('u.id', 'id')
+      .addSelect('u.name', 'name')
+      .addSelect('u.phone', 'phone')
+      .addSelect('u.email', 'email')
+      .addSelect('u.role', 'role')
+      .addSelect('COUNT(record.id)listCount')
+      .addSelect(
+        `JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id',record.id,
+            'startTime',record.startTime,
+            'endTime',record.endTime,
+            'duration',record.duration
+          )
+      ) recordList`,
       )
-      .orderBy('record.startTime', 'DESC')
-      .getMany();
-
+      .innerJoin(
+        (qb) =>
+          qb
+            .select()
+            .from(Record, 'r')
+            .where(
+              'DATE_FORMAT(r.startTime,"%Y-%m-%d")=DATE_FORMAT(NOW(),"%Y-%m-%d")',
+            )
+            .andWhere('r.endTime IS NULL'),
+        'record',
+        'record.userId = u.id',
+      )
+      .groupBy('u.id')
+      .orderBy('u.name', 'ASC')
+      .getRawMany();
     return workingUsers;
   }
 
@@ -166,13 +223,16 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.in(user.socketId).socketsJoin('working');
 
     const workingUserList = await this.getWorkingUserList();
+    const doneUserList = await this.getDoneUserList();
 
-    this.server.in('manager').emit('workingUsers', workingUserList);
+    this.server
+      .in('manager')
+      .emit('workingUsers', { workingUserList, doneUserList });
     this.server
       .in('manager')
       .emit(
         'notice',
-        `${workingUserList[0].name}님이 초과근무를 시작했습니다.`,
+        `${workingUserList[0][0].name}님이 초과근무를 시작했습니다.`,
       );
   }
 
@@ -196,7 +256,10 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     const workingUserList = await this.getWorkingUserList();
-    this.server.in('manager').emit('workingUsers', workingUserList);
+    const doneUserList = await this.getDoneUserList();
+    this.server
+      .in('manager')
+      .emit('workingUsers', { workingUserList, doneUserList });
   }
 
   @SubscribeMessage('logout')
@@ -228,7 +291,10 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     const workingUserList = await this.getWorkingUserList();
-    this.server.in('manager').emit('workingUsers', workingUserList);
+    const doneUserList = await this.getDoneUserList();
+    this.server
+      .in('manager')
+      .emit('workingUsers', { workingUserList, doneUserList });
   }
 
   @SubscribeMessage('deleteRecord')
@@ -250,7 +316,10 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     const workingUserList = await this.getWorkingUserList();
-    this.server.in('manager').emit('workingUsers', workingUserList);
+    const doneUserList = await this.getDoneUserList();
+    this.server
+      .in('manager')
+      .emit('workingUsers', { workingUserList, doneUserList });
   }
 
   @SubscribeMessage('deleteRecords')

@@ -11,4 +11,16 @@ export class GetMyRecordsDto extends PagnationDto {
   @IsOptional()
   @IsString({ message: '정렬 키는 문자열 입니다.' })
   sortKey?: string;
+
+  @IsString({ message: '검색어는 문자열 입니다.' })
+  @IsOptional()
+  searchTerm?: string;
+
+  @IsString({ message: '검색날짜는 문자열 입니다.' })
+  @IsOptional()
+  startDate?: string;
+
+  @IsString({ message: '검색날짜는 문자열 입니다.' })
+  @IsOptional()
+  endDate?: string;
 }

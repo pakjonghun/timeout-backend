@@ -19,7 +19,6 @@ import { GetUser } from 'src/user/decorators/user.decorator';
 import { MyInfoDto } from 'src/user/decorators/myInfo.dto';
 import { GetUserRecordsDto } from './dto/getUserRecord';
 import { EventGateway } from 'src/event/event.gateway';
-import { DeleteManyRecordsDto } from './dto/deleteManyRecords.dto';
 
 @Controller('records')
 export class RecordController {
@@ -83,7 +82,6 @@ export class RecordController {
   @Role('Manager')
   @Delete('/admin/delete')
   async removeMany(@Query('ids') ids: string) {
-    console.log('ids', ids);
     await this.recordService.removeRecords(ids);
   }
 
@@ -92,5 +90,11 @@ export class RecordController {
   async removeRecord(@Param('id') id: number) {
     console.log('idididid', id);
     return this.recordService.removeRecord({ id });
+  }
+
+  @Role('Manager')
+  @Delete('/admin/today')
+  async getTodayList(@Query() getMyRecordsDto: GetMyRecordsDto) {
+    return this.recordService.findAllRecords(getMyRecordsDto);
   }
 }

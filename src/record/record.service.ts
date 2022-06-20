@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { StartRecordDto } from './dto/startRecord.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { EndRecordDto } from './dto/endRecord.dto';
 
 @Injectable()
@@ -48,9 +48,17 @@ export class RecordService {
 
   async findMyRecords(
     userId: number,
-    { page, perPage, sortValue, sortKey }: GetMyRecordsDto,
+    {
+      page,
+      perPage,
+      sortValue,
+      sortKey,
+      endDate,
+      startDate,
+      searchTerm,
+    }: GetMyRecordsDto,
   ) {
-    const tempQuery = this.recordRepository
+    const iniQuery = this.recordRepository
       .createQueryBuilder('r')
       .select('r.id', 'id')
       .select([
@@ -66,12 +74,30 @@ export class RecordService {
       .take(perPage)
       .skip((page - 1) * perPage);
 
+    const afterTermQuery = searchTerm
+      ? iniQuery.where('r.description like :description', {
+          description: `%${searchTerm}%`,
+        })
+      : iniQuery;
+
+    const afterStartDate = startDate
+      ? afterTermQuery.andWhere('DATE_FORMAT(r.startTime,"%Y-%m-%d")>=:start', {
+          start: startDate,
+        })
+      : afterTermQuery;
+
+    const afterEndDate = endDate
+      ? afterStartDate.andWhere('DATE_FORMAT(r.startTime,"%Y-%m-%d")<=:end', {
+          end: endDate,
+        })
+      : afterStartDate;
+
     const [data, totalCount] =
       sortValue && sortKey
-        ? await tempQuery
+        ? await afterEndDate
             .orderBy(`r.${sortKey}`, `${sortValue}`)
             .getManyAndCount()
-        : await tempQuery.orderBy('r.startTime', 'DESC').getManyAndCount();
+        : await afterEndDate.orderBy('r.startTime', 'DESC').getManyAndCount();
 
     return {
       data,
@@ -81,9 +107,16 @@ export class RecordService {
     };
   }
 
-  async findAllRecords({ page, perPage, sortValue, sortKey }: GetMyRecordsDto) {
-    console.log(sortKey, sortValue);
-    const tempQuery = this.recordRepository
+  async findAllRecords({
+    page,
+    perPage,
+    sortValue,
+    sortKey,
+    endDate,
+    searchTerm,
+    startDate,
+  }: GetMyRecordsDto) {
+    const iniQuery = this.recordRepository
       .createQueryBuilder('r')
       .select([
         'r.id',
@@ -95,20 +128,40 @@ export class RecordService {
         'r.status',
         'u.id',
         'u.name',
+        'u.email',
+        'u.phone',
       ])
       .innerJoin('r.user', 'u')
       .take(perPage)
       .skip((page - 1) * perPage);
 
+    const afterTermQuery = searchTerm
+      ? iniQuery.where('u.name like :description', {
+          description: `%${searchTerm}%`,
+        })
+      : iniQuery;
+
+    const afterStartDate = startDate
+      ? afterTermQuery.andWhere('DATE_FORMAT(r.startTime,"%Y-%m-%d")>=:start', {
+          start: startDate,
+        })
+      : afterTermQuery;
+
+    const afterEndDate = endDate
+      ? afterStartDate.andWhere('DATE_FORMAT(r.startTime,"%Y-%m-%d")<=:end', {
+          end: endDate,
+        })
+      : afterStartDate;
+
     const [data, totalCount] =
       sortValue && sortKey
-        ? await tempQuery
+        ? await afterEndDate
             .orderBy(
               `${sortKey == 'userName' ? 'u.name' : 'r.' + sortKey}`,
               sortValue,
             )
             .getManyAndCount()
-        : await tempQuery.orderBy('r.startTime', 'DESC').getManyAndCount();
+        : await afterEndDate.orderBy('r.startTime', 'DESC').getManyAndCount();
 
     return {
       data,
@@ -132,7 +185,6 @@ export class RecordService {
       .where('r.id IN(:...ids)', { ids: ids.split(',') })
       .getCount();
 
-    console.log(count, ids.split(',').length);
     if (count !== ids.split(',').length)
       throw new NotFoundException('없는 기록 이 존재합니다.');
 

@@ -16,9 +16,7 @@ import { AuthGuard } from './user/auth.guard';
 import { MessageInterceptor } from './common/interceptors/message.interceptor';
 import { RecordModule } from './record/record.module';
 import { EventModule } from './event/event.module';
-import { EventGateway } from './event/event.gateway';
 import { DmModule } from './dm/dm.module';
-import { User } from './user/entities/user.entity';
 
 @Module({
   imports: [
@@ -51,7 +49,7 @@ import { User } from './user/entities/user.entity';
           database: configService.get('DB_DATABASE'),
           entities: [resolve(__dirname, '**', '*.entity.{ts,js}')],
           synchronize: true,
-          logging: false,
+          logging: true,
         };
       },
       inject: [ConfigService],
