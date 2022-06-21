@@ -43,7 +43,6 @@ let RecordService = class RecordService {
             .getOne();
     }
     async updateRecord(id, body) {
-        console.log(body);
         const isExist = await this.recordRepository.findOne({ id });
         if (!isExist)
             throw new common_1.NotFoundException('없는 기록 입니다.');

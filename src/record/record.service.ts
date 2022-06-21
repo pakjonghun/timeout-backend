@@ -51,7 +51,6 @@ export class RecordService {
   }
 
   async updateRecord(id: number, body: EndRecordDto) {
-    console.log(body);
     const isExist = await this.recordRepository.findOne({ id });
 
     if (!isExist) throw new NotFoundException('없는 기록 입니다.');
@@ -110,7 +109,7 @@ export class RecordService {
       : afterStartDate;
 
     if (!sortKey && !sortValue) {
-      const defautSort = afterEndDate.orderBy('r.startTime', sortValue);
+      const defautSort = afterEndDate.orderBy('r.startTime', 'DESC');
       const [data, totalCount] = await defautSort.getManyAndCount();
 
       return {
@@ -193,7 +192,7 @@ export class RecordService {
       : afterStartDate;
 
     if (!sortKey && !sortValue) {
-      const defautSort = afterEndDate.orderBy('r.startTime', sortValue);
+      const defautSort = afterEndDate.orderBy('r.startTime', 'DESC');
       const [data, totalCount] = await defautSort.getManyAndCount();
 
       return {
