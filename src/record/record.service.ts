@@ -136,7 +136,6 @@ export class RecordService {
         : afterEndTimeSort;
 
     const [data, totalCount] = await afterSort.getManyAndCount();
-    console.log(sortValue, sortKey, data.slice(0, 10));
 
     return {
       data,

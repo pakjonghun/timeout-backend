@@ -87,7 +87,6 @@ export class RecordController {
   @Role('Manager')
   @Delete('/admin/:id')
   async removeRecord(@Param('id') id: number) {
-    console.log('idididid', id);
     return this.recordService.removeRecord({ id });
   }
 
