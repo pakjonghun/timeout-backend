@@ -35,7 +35,6 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() socket: Socket,
     @MessageBody() { id, role }: SocketLoginDto,
   ) {
-    console.log('reconnect');
     if (!id || !role) {
       return socket.emit('error', '소켓 서버 접속을 실패했습니다 id role');
     }
@@ -87,7 +86,6 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() socket: Socket,
     @MessageBody() msg: SocketLoginDto,
   ) {
-    console.log('login', msg);
     const { id, role } = msg;
     if (!id || !role) {
       return socket.emit('error', '소켓 서버 접속을 실패했습니다. id, role');
@@ -130,7 +128,7 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() socket: Socket,
     @MessageBody() data: string,
   ) {
-    console.log('connect');
+    return;
   }
 
   async getLoginManagerIdList() {
