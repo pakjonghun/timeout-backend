@@ -1,6 +1,5 @@
-import { User } from 'src/user/entities/user.entity';
-import { EventGateway } from 'src/event/event.gateway';
-import { GetUser } from 'src/user/decorators/user.decorator';
+import { User } from '../user/entities/user.entity';
+import { GetUser } from '../user/decorators/user.decorator';
 import { Role } from './decorators/role.decorator';
 import {
   Controller,
@@ -16,6 +15,7 @@ import {
   UploadedFile,
   BadRequestException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dtos/createUser.dto';
@@ -23,7 +23,7 @@ import { UpdateUserDto } from './dtos/updateUser.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
 import { Response } from 'express';
 import { User as UserEntity } from './entities/user.entity';
-import { PagnationDto } from 'src/common/dtos/pagnation.dto';
+import { PagnationDto } from '../common/dtos/pagnation.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
@@ -74,6 +74,7 @@ export class UserController {
   @Role('Any')
   @Get('me')
   async me(@GetUser() user: User) {
+    if (!user) throw new UnauthorizedException('잘못된 쿠키 토큰 입니다.');
     return user;
   }
 
@@ -139,7 +140,6 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
     @GetUser() user: User,
   ) {
-    console.log(file);
     if (!file) throw new BadRequestException('');
     AWS.config.update({
       credentials: {
@@ -150,15 +150,13 @@ export class UserController {
     });
 
     const fileName = Date.now() + file.originalname;
-    const result = await new AWS.S3()
+    await new AWS.S3()
       .putObject({
         Bucket: this.configService.get('AWS_S3_BUCKET_NAME'),
         Body: file.buffer,
         Key: `original/${fileName}`,
       })
       .promise();
-
-    console.log(result);
 
     const makrUrl = (path: string) => {
       return `https://${this.configService.get(

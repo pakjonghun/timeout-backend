@@ -1,5 +1,5 @@
-import { Record } from 'src/record/entities/record.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Record } from '../../record/entities/record.entity';
+import { User } from '../../user/entities/user.entity';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { getManager } from 'typeorm';

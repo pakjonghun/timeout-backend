@@ -1,14 +1,10 @@
+import { User } from '../user/entities/user.entity';
 import { GetMyRecordsDto } from './dto/getMyRecord.dto';
-import { Record } from 'src/record/entities/record.entity';
-import {
-  ClassSerializerInterceptor,
-  Injectable,
-  NotFoundException,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Record } from '../record/entities/record.entity';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { StartRecordDto } from './dto/startRecord.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository } from 'typeorm';
 import { EndRecordDto } from './dto/endRecord.dto';
 
 @Injectable()
@@ -17,6 +13,25 @@ export class RecordService {
     @InjectRepository(Record)
     private readonly recordRepository: Repository<Record>,
   ) {}
+
+  async create({
+    user,
+    endTime,
+    startTime,
+  }: {
+    user: User;
+    endTime: Date;
+    startTime: Date;
+  }) {
+    const temp = this.recordRepository.create({
+      description: '초과근무',
+      startTime,
+      endTime,
+      user,
+    });
+
+    this.recordRepository.save(temp);
+  }
 
   async startRecord(userId: number, startRecordDto: StartRecordDto) {
     const tempObj = this.recordRepository.create({
@@ -68,6 +83,8 @@ export class RecordService {
         'r.date',
         'r.duration',
         'r.status',
+        'r.start',
+        'r.end',
       ])
       .innerJoin('r.user', 'u')
       .where('u.id=:id', { id: userId })
@@ -92,18 +109,39 @@ export class RecordService {
         })
       : afterStartDate;
 
-    const [data, totalCount] =
-      sortValue && sortKey
-        ? await afterEndDate
-            .orderBy(`r.${sortKey}`, `${sortValue}`)
-            .getManyAndCount()
-        : await afterEndDate.orderBy('r.startTime', 'DESC').getManyAndCount();
+    if (!sortKey && !sortValue) {
+      const defautSort = afterEndDate.orderBy('r.startTime', sortValue);
+      const [data, totalCount] = await defautSort.getManyAndCount();
+
+      return {
+        data,
+        totalCount,
+        totalPage: Math.ceil(totalCount / perPage),
+      };
+    }
+
+    const aftrtStartTimeSort =
+      sortKey === 'startTime'
+        ? afterEndDate.orderBy('r.start', sortValue)
+        : afterEndDate;
+
+    const afterEndTimeSort =
+      sortKey === 'endTime'
+        ? aftrtStartTimeSort.orderBy('r.end', sortValue)
+        : aftrtStartTimeSort;
+
+    const afterSort =
+      sortKey !== 'endTime' && sortKey !== 'startTime'
+        ? afterEndTimeSort.addOrderBy('r.' + sortKey, sortValue)
+        : afterEndTimeSort;
+
+    const [data, totalCount] = await afterSort.getManyAndCount();
+    console.log(sortValue, sortKey, data.slice(0, 10));
 
     return {
       data,
       totalCount,
       totalPage: Math.ceil(totalCount / perPage),
-      message: 'success',
     };
   }
 
@@ -116,7 +154,7 @@ export class RecordService {
     searchTerm,
     startDate,
   }: GetMyRecordsDto) {
-    const iniQuery = this.recordRepository
+    const initQuery = this.recordRepository
       .createQueryBuilder('r')
       .select([
         'r.id',
@@ -126,6 +164,8 @@ export class RecordService {
         'r.description',
         'r.duration',
         'r.status',
+        'r.start',
+        'r.end',
         'u.id',
         'u.name',
         'u.email',
@@ -136,10 +176,10 @@ export class RecordService {
       .skip((page - 1) * perPage);
 
     const afterTermQuery = searchTerm
-      ? iniQuery.where('u.name like :description', {
+      ? initQuery.where('u.name like :description', {
           description: `%${searchTerm}%`,
         })
-      : iniQuery;
+      : initQuery;
 
     const afterStartDate = startDate
       ? afterTermQuery.andWhere('DATE_FORMAT(r.startTime,"%Y-%m-%d")>=:start', {
@@ -153,21 +193,40 @@ export class RecordService {
         })
       : afterStartDate;
 
-    const [data, totalCount] =
-      sortValue && sortKey
-        ? await afterEndDate
-            .orderBy(
-              `${sortKey == 'userName' ? 'u.name' : 'r.' + sortKey}`,
-              sortValue,
-            )
-            .getManyAndCount()
-        : await afterEndDate.orderBy('r.startTime', 'DESC').getManyAndCount();
+    if (!sortKey && !sortValue) {
+      const defautSort = afterEndDate.orderBy('r.startTime', sortValue);
+      const [data, totalCount] = await defautSort.getManyAndCount();
+
+      return {
+        data,
+        totalCount,
+        totalPage: Math.ceil(totalCount / perPage),
+      };
+    }
+    const aftrtStartTimeSort =
+      sortKey === 'startTime'
+        ? afterEndDate.orderBy('r.start', sortValue)
+        : afterEndDate;
+
+    const afterEndTimeSort =
+      sortKey === 'endTime'
+        ? aftrtStartTimeSort.orderBy('r.end', sortValue)
+        : aftrtStartTimeSort;
+
+    const afterSort =
+      sortKey !== 'endTime' && sortKey !== 'startTime'
+        ? afterEndTimeSort.addOrderBy(
+            `${sortKey == 'userName' ? 'u.name' : 'r.' + sortKey}`,
+            sortValue,
+          )
+        : afterEndTimeSort;
+
+    const [data, totalCount] = await afterSort.getManyAndCount();
 
     return {
       data,
       totalCount,
       totalPage: Math.ceil(totalCount / perPage),
-      message: 'success',
     };
   }
 
@@ -178,7 +237,6 @@ export class RecordService {
   }
 
   async removeRecords(ids: string) {
-    console.log(ids);
     const count = await this.recordRepository
       .createQueryBuilder('r')
       .select('r.id')

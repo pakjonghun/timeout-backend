@@ -1,4 +1,4 @@
-import { Record } from 'src/record/entities/record.entity';
+import { Record } from '../record/entities/record.entity';
 import { ManageUserList } from './manageUserList';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,7 +12,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { User } from 'src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { SocketLoginDto } from './dtos/login.dto';
 

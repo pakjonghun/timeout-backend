@@ -15,10 +15,9 @@ import {
 } from '@nestjs/common';
 import { RecordService } from './record.service';
 import { StartRecordDto } from './dto/startRecord.dto';
-import { GetUser } from 'src/user/decorators/user.decorator';
-import { MyInfoDto } from 'src/user/decorators/myInfo.dto';
-import { GetUserRecordsDto } from './dto/getUserRecord';
-import { EventGateway } from 'src/event/event.gateway';
+import { GetUser } from '../user/decorators/user.decorator';
+import { MyInfoDto } from '../user/decorators/myInfo.dto';
+import { EventGateway } from '../event/event.gateway';
 
 @Controller('records')
 export class RecordController {

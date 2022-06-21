@@ -10,12 +10,12 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { UpdateUserDto } from './dtos/updateUser.dto';
 import { User } from './entities/user.entity';
-import { PagnationDto } from 'src/common/dtos/pagnation.dto';
+import { PagnationDto } from '../common/dtos/pagnation.dto';
 import {
   UpdatePasswordDto,
   UpdateUserPasswordDto,
 } from './dtos/updatePassword.dto';
-import { EventGateway } from 'src/event/event.gateway';
+import { EventGateway } from '../event/event.gateway';
 
 @Injectable()
 export class UserService {

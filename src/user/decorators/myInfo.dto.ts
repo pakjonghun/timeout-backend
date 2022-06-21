@@ -1,4 +1,4 @@
-import { Record } from 'src/record/entities/record.entity';
+import { Record } from '../../record/entities/record.entity';
 import { PickType } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
 

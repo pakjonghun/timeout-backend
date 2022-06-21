@@ -7,8 +7,8 @@ import {
   Length,
   Matches,
 } from 'class-validator';
-import { Common } from 'src/common/entities/common.entity';
-import { Record } from 'src/record/entities/record.entity';
+import { Common } from '../../common/entities/common.entity';
+import { Record } from '../../record/entities/record.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 
 export enum Role {

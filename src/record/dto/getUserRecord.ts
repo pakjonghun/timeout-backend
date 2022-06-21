@@ -1,5 +1,5 @@
 import { IsOptional, Matches } from 'class-validator';
-import { PagnationDto } from 'src/common/dtos/pagnation.dto';
+import { PagnationDto } from '../../common/dtos/pagnation.dto';
 
 type Sort = 'ASC' | 'DESC';
 

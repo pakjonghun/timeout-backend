@@ -22,7 +22,6 @@ import { EventModule } from './event/event.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      ignoreEnvFile: process.env.NODE_ENV !== 'development',
       validationSchema: Joi.object({
         NODE_ENV: Joi.valid('development', 'production').required(),
         PORT: Joi.string().required(),
@@ -47,7 +46,7 @@ import { EventModule } from './event/event.module';
           password: configService.get('DB_PASSWORD'),
           database: configService.get('DB_DATABASE'),
           entities: [resolve(__dirname, '**', '*.entity.{ts,js}')],
-          synchronize: true,
+          synchronize: false,
           logging: false,
         };
       },
