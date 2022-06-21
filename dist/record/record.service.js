@@ -67,6 +67,7 @@ let RecordService = class RecordService {
             'r.status',
             'r.start',
             'r.end',
+            'r.createdAt',
         ])
             .innerJoin('r.user', 'u')
             .where('u.id=:id', { id: userId })
@@ -88,7 +89,7 @@ let RecordService = class RecordService {
             })
             : afterStartDate;
         if (!sortKey && !sortValue) {
-            const defautSort = afterEndDate.orderBy('r.startTime', sortValue);
+            const defautSort = afterEndDate.orderBy('r.createdAt', 'DESC');
             const [data, totalCount] = await defautSort.getManyAndCount();
             return {
                 data,
@@ -129,6 +130,7 @@ let RecordService = class RecordService {
             'u.name',
             'u.email',
             'u.phone',
+            'r.createdAt',
         ])
             .innerJoin('r.user', 'u')
             .take(perPage)
@@ -149,7 +151,7 @@ let RecordService = class RecordService {
             })
             : afterStartDate;
         if (!sortKey && !sortValue) {
-            const defautSort = afterEndDate.orderBy('r.startTime', sortValue);
+            const defautSort = afterEndDate.orderBy('r.createdAt', 'DESC');
             const [data, totalCount] = await defautSort.getManyAndCount();
             return {
                 data,
