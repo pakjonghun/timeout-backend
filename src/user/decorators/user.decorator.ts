@@ -14,6 +14,7 @@ export const GetUser = createParamDecorator(
       .select('u.id', 'id')
       .addSelect('u.role', 'role')
       .addSelect('u.avatar', 'avatar')
+      .addSelect('u.avatar2', 'avatar2')
       .addSelect(
         `
         IF(r.id IS NULL,

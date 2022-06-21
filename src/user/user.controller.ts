@@ -1,3 +1,4 @@
+import { User } from 'src/user/entities/user.entity';
 import { EventGateway } from 'src/event/event.gateway';
 import { GetUser } from 'src/user/decorators/user.decorator';
 import { Role } from './decorators/role.decorator';
@@ -13,13 +14,15 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { UpdateUserDto } from './dtos/updateUser.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
 import { Response } from 'express';
-import { User } from './entities/user.entity';
+import { User as UserEntity } from './entities/user.entity';
 import { PagnationDto } from 'src/common/dtos/pagnation.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as AWS from 'aws-sdk';
@@ -28,12 +31,16 @@ import {
   UpdatePasswordDto,
   UpdateUserPasswordDto,
 } from './dtos/updatePassword.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Controller('users')
 export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly configService: ConfigService,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
   ) {}
 
   @Role('Any')
@@ -126,9 +133,14 @@ export class UserController {
 
   @Post('avatar')
   @UseInterceptors(
-    FileInterceptor('avatar', { limits: { fileSize: 5 * 1024 * 1024 } }),
+    FileInterceptor('avatar', { limits: { fileSize: 2 * 1024 * 1024 } }),
   )
-  async uploadAvatar(@UploadedFile() file: Express.Multer.File) {
+  async uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @GetUser() user: User,
+  ) {
+    console.log(file);
+    if (!file) throw new BadRequestException('');
     AWS.config.update({
       credentials: {
         accessKeyId: this.configService.get('AWS_S3_ACCESS_KEY'),
@@ -138,7 +150,7 @@ export class UserController {
     });
 
     const fileName = Date.now() + file.originalname;
-    await new AWS.S3()
+    const result = await new AWS.S3()
       .putObject({
         Bucket: this.configService.get('AWS_S3_BUCKET_NAME'),
         Body: file.buffer,
@@ -146,12 +158,26 @@ export class UserController {
       })
       .promise();
 
+    console.log(result);
+
     const makrUrl = (path: string) => {
       return `https://${this.configService.get(
         'AWS_S3_BUCKET_NAME',
-      )}.s3.amazonaws.com/${path}/${fileName}`;
+      )}.s3.ap-northeast-2.amazonaws.com/${path}/${fileName}`;
     };
 
-    return { original: makrUrl('original'), resized: makrUrl('resized') };
+    const original = makrUrl('original');
+    const resized = makrUrl('resize');
+
+    const isExist = await this.userRepository.count({ id: user.id });
+    if (!isExist) throw new NotFoundException('사용자가 없습니다.');
+
+    await this.userRepository.save({
+      id: user.id,
+      avatar: original,
+      avatar2: resized,
+    });
+
+    return { original, resized };
   }
 }

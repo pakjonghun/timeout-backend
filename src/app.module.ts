@@ -16,7 +16,6 @@ import { AuthGuard } from './user/auth.guard';
 import { MessageInterceptor } from './common/interceptors/message.interceptor';
 import { RecordModule } from './record/record.module';
 import { EventModule } from './event/event.module';
-import { DmModule } from './dm/dm.module';
 
 @Module({
   imports: [
@@ -58,7 +57,6 @@ import { DmModule } from './dm/dm.module';
     CommonModule,
     RecordModule,
     EventModule,
-    DmModule,
   ],
   controllers: [],
   providers: [

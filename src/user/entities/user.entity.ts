@@ -46,6 +46,10 @@ export class User extends Common {
   @IsOptional()
   avatar?: string;
 
+  @Column({ nullable: true })
+  @IsOptional()
+  avatar2?: string;
+
   @OneToMany(() => Record, (record) => record.user)
   recordList: Record[];
 
