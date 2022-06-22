@@ -23,7 +23,6 @@ import { EventModule } from './event/event.module';
       isGlobal: true,
       envFilePath: '.env',
       validationSchema: Joi.object({
-        NODE_ENV: Joi.valid('development', 'production').required(),
         PORT: Joi.string().required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.string().required(),
