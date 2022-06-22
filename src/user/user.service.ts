@@ -54,6 +54,7 @@ export class UserService {
       id: user.id,
       role: user.role,
     });
+
     return { token, user };
   }
 

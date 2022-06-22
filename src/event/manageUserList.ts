@@ -12,6 +12,15 @@ export class ManageUserList {
     done: [],
   };
 
+  updateUserListWithLogin(id: number) {
+    const isWorking = this.getUser('working', id);
+    const isDone = this.getUser('done', id);
+    const { socketId } = this.getUser('login', id);
+
+    if (isWorking) isWorking.socketId = socketId;
+    if (isDone) isDone.socketId = socketId;
+  }
+
   getUsers(room: UserListRoom) {
     return [...this.userList[room]];
   }

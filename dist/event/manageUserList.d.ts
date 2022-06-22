@@ -5,6 +5,7 @@ declare type UserOfUserList = {
 };
 export declare class ManageUserList {
     userList: Record<UserListRoom, UserOfUserList[]>;
+    updateUserListWithLogin(id: number): void;
     getUsers(room: UserListRoom): UserOfUserList[];
     getUser(room: UserListRoom, id: number): {
         id: number;

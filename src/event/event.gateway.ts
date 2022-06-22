@@ -38,9 +38,11 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!id || !role) {
       return socket.emit('error', '소켓 서버 접속을 실패했습니다 id role');
     }
+
     socket.handshake.auth.id = id;
     socket.handshake.auth.role = role;
     socket.join('login');
+
     this.addUserToList({ role, socketId: socket.id, id });
     if (role === 'Manager') {
       socket.join('manager');
@@ -48,6 +50,8 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const doneUserList = await this.getDoneUserList();
       socket.emit('workingUsers', { workingUserList, doneUserList });
     }
+
+    this.manageUserList.updateUserListWithLogin(id);
   }
 
   private addUserToList({
@@ -93,11 +97,7 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.handshake.auth.id = id;
     socket.handshake.auth.role = role;
     socket.join('login');
-    if (role === 'Manager') {
-      socket.join('manager');
-      // const workingUserList = await this.getWorkingUserList();
-      // socket.emit('workingUsers', workingUserList);
-    }
+    if (role === 'Manager') socket.join('manager');
 
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
@@ -213,6 +213,13 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async startWork(id: number) {
     const user = this.manageUserList.getUser('login', id);
     if (!user) return;
+
+    const userObj = await this.userRepository.findOne(
+      { id },
+      { select: ['name'] },
+    );
+    if (!userObj) return;
+
     this.manageUserList.addUser({
       room: 'working',
       userId: id,
@@ -226,17 +233,17 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server
       .in('manager')
       .emit('workingUsers', { workingUserList, doneUserList });
+
     this.server
       .in('manager')
-      .emit(
-        'notice',
-        `${workingUserList[0][0].name}님이 초과근무를 시작했습니다.`,
-      );
+      .emit('notice', `${userObj.name}님이 초과근무를 시작했습니다.`);
   }
 
   async endWork(id: number) {
     const user = this.manageUserList.getUser('working', id);
     if (!user) return;
+
+    const socketId = user.socketId;
 
     const userInfo = await this.userRepository.findOne({ id });
     if (!userInfo) return;
@@ -250,11 +257,12 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.manageUserList.addUser({
       room: 'done',
       userId: id,
-      socketId: user.socketId,
+      socketId,
     });
 
     const workingUserList = await this.getWorkingUserList();
     const doneUserList = await this.getDoneUserList();
+
     this.server
       .in('manager')
       .emit('workingUsers', { workingUserList, doneUserList });
@@ -262,12 +270,14 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('logout')
   async handleLogout(@ConnectedSocket() socket: Socket) {
-    socket.leave('login');
-    this.manageUserList.deleteUser('login', socket.handshake.auth.id);
+    const auth = socket.handshake.auth;
+    if (!auth || (auth && !Object.keys(auth))) return;
 
-    if (socket.handshake.auth.role === 'Manager') {
+    socket.leave('login');
+    this.manageUserList.deleteUser('login', auth.id);
+    if (auth.role === 'Manager') {
       socket.leave('manager');
-      this.manageUserList.deleteUser('manager', socket.handshake.auth.id);
+      this.manageUserList.deleteUser('manager', auth.id);
     }
   }
 
