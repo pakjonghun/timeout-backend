@@ -18,7 +18,7 @@ export declare class UserController {
     getPrivateInfo(user: User): Promise<User>;
     create(createUserDto: CreateUserDto): Promise<User>;
     logout(res: Response): Promise<void>;
-    login(key: string, res: Response, loginUserDto: LoginUserDto): Promise<{
+    login(res: Response, loginUserDto: LoginUserDto): Promise<{
         id: number;
         role: "Client" | "Manager";
     }>;
@@ -31,10 +31,7 @@ export declare class UserController {
         avatar?: string;
         id: number;
     } & User>;
-    updateMyPassword(user: User, updatePasswordDto: UpdatePasswordDto): Promise<{
-        id: number;
-        password: string;
-    } & User>;
+    updateMyPassword(user: User, updatePasswordDto: UpdatePasswordDto): Promise<User>;
     updateUserPassword(id: number, updateUserPasswordDto: UpdateUserPasswordDto): Promise<{
         id: number;
         password: string;

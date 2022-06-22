@@ -48,7 +48,7 @@ let UserService = class UserService {
         const { id } = await this.userRepository.save(this.userRepository.create(Object.assign(Object.assign({}, rest), { email, phone })));
         return this.findUserInfoById(id);
     }
-    async login(loginUserDto, key) {
+    async login(loginUserDto) {
         const { email, password } = loginUserDto;
         const user = await this.findUserByEmail(email);
         if (!user)
@@ -122,7 +122,8 @@ let UserService = class UserService {
         const user = await this.findUserById(id);
         if (!user)
             throw new common_1.NotFoundException('존재하지 않는 사용자 입니다.');
-        return this.userRepository.save({ id, password });
+        const userObject = this.userRepository.create({ id, password });
+        return this.userRepository.save(userObject);
     }
     async updateUserPassword(id, { password }) {
         const user = await this.findUserById(id);

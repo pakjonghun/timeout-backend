@@ -43,7 +43,7 @@ export class UserService {
     return this.findUserInfoById(id);
   }
 
-  async login(loginUserDto: LoginUserDto, key: string) {
+  async login(loginUserDto: LoginUserDto) {
     const { email, password } = loginUserDto;
     const user = await this.findUserByEmail(email);
     if (!user) throw new NotFoundException('유저가 없습니다.');
@@ -130,7 +130,8 @@ export class UserService {
   async updateMyPassword(id: number, { password }: UpdatePasswordDto) {
     const user = await this.findUserById(id);
     if (!user) throw new NotFoundException('존재하지 않는 사용자 입니다.');
-    return this.userRepository.save({ id, password });
+    const userObject = this.userRepository.create({ id, password });
+    return this.userRepository.save(userObject);
   }
 
   async updateUserPassword(id: number, { password }: UpdateUserPasswordDto) {

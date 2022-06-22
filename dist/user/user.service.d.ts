@@ -13,7 +13,7 @@ export declare class UserService {
     private readonly eventGateway;
     constructor(userRepository: Repository<User>, jwtService: JwtService, eventGateway: EventGateway);
     create(createUserDto: CreateUserDto): Promise<User>;
-    login(loginUserDto: LoginUserDto, key: string): Promise<{
+    login(loginUserDto: LoginUserDto): Promise<{
         token: string;
         user: User;
     }>;
@@ -36,10 +36,7 @@ export declare class UserService {
         avatar?: string;
         id: number;
     } & User>;
-    updateMyPassword(id: number, { password }: UpdatePasswordDto): Promise<{
-        id: number;
-        password: string;
-    } & User>;
+    updateMyPassword(id: number, { password }: UpdatePasswordDto): Promise<User>;
     updateUserPassword(id: number, { password }: UpdateUserPasswordDto): Promise<{
         id: number;
         password: string;

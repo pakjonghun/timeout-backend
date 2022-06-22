@@ -44,8 +44,8 @@ let UserController = class UserController {
     async logout(res) {
         res.clearCookie('jwt');
     }
-    async login(key, res, loginUserDto) {
-        const { token, user } = await this.userService.login(loginUserDto, key);
+    async login(res, loginUserDto) {
+        const { token, user } = await this.userService.login(loginUserDto);
         res.cookie('jwt', token, { httpOnly: true });
         return { id: user.id, role: user.role };
     }
@@ -134,11 +134,10 @@ __decorate([
 ], UserController.prototype, "logout", null);
 __decorate([
     (0, common_1.Post)('login'),
-    __param(0, (0, common_1.Query)('key')),
-    __param(1, (0, common_1.Res)({ passthrough: true })),
-    __param(2, (0, common_1.Body)()),
+    __param(0, (0, common_1.Res)({ passthrough: true })),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, loginUser_dto_1.LoginUserDto]),
+    __metadata("design:paramtypes", [Object, loginUser_dto_1.LoginUserDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "login", null);
 __decorate([
