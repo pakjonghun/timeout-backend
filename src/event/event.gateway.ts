@@ -19,7 +19,12 @@ import { SocketLoginDto } from './dtos/login.dto';
 @Injectable()
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: [
+      process.env.URL,
+      'http://fireking5997.xyz',
+      'http://localhost:3000',
+    ],
+    credentials: true,
   },
 })
 export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {

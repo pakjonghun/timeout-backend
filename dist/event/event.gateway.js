@@ -325,7 +325,12 @@ EventGateway = __decorate([
     (0, common_1.Injectable)(),
     (0, websockets_1.WebSocketGateway)({
         cors: {
-            origin: '*',
+            origin: [
+                process.env.URL,
+                'http://fireking5997.xyz',
+                'http://localhost:3000',
+            ],
+            credentials: true,
         },
     }),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
