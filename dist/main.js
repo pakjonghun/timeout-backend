@@ -9,17 +9,7 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
     app.use(cookieParser());
     app.enableCors({
-        origin: [
-            `${process.env.URL}:80`,
-            `${process.env.URL}:8080`,
-            process.env.URL,
-            'http://fireking5997.com',
-            'http://fireking5997.xyz',
-            'http://www.fireking5997.xyz',
-            'http://www.fireking5997.com',
-            'http://localhost:3000',
-        ],
-        allowedHeaders: 'origin',
+        origin: true,
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
