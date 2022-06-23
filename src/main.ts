@@ -9,17 +9,17 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.use(cookieParser());
   app.enableCors({
-    // origin: [
-    //   `${process.env.URL}:80`,
-    //   `${process.env.URL}:8080`,
-    //   process.env.URL,
-    //   'http://fireking5997.com',
-    //   'http://fireking5997.xyz',
-    //   'http://www.fireking5997.xyz',
-    //   'http://www.fireking5997.com',
-    //   'http://localhost:3000',
-    // ],
-    origin: true,
+    origin: [
+      `${process.env.URL}:80`,
+      `${process.env.URL}:8080`,
+      process.env.URL,
+      'http://fireking5997.com',
+      'http://fireking5997.xyz',
+      'http://www.fireking5997.xyz',
+      'http://www.fireking5997.com',
+      'http://localhost:3000',
+    ],
+    allowedHeaders: 'Origin',
     credentials: true,
   });
   app.useGlobalPipes(
