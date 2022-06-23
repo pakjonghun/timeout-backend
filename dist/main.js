@@ -10,19 +10,22 @@ async function bootstrap() {
     app.use(cookieParser());
     app.enableCors({
         origin: [
+            `${process.env.URL}:80`,
+            `${process.env.URL}:8080`,
             process.env.URL,
             'http://fireking5997.xyz',
             'http://localhost:3000',
         ],
         credentials: true,
     });
-    app.useGlobalPipes(new common_1.ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transformOptions: { enableImplicitConversion: true },
-        transform: true,
-    }));
-    await app.listen(process.env.PORT);
 }
+;
+app.useGlobalPipes(new common_1.ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transformOptions: { enableImplicitConversion: true },
+    transform: true,
+}));
+await app.listen(process.env.PORT);
 bootstrap();
 //# sourceMappingURL=main.js.map
