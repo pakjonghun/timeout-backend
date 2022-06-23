@@ -66,7 +66,7 @@ export class UserController {
     @Body() loginUserDto: LoginUserDto,
   ) {
     const { token, user } = await this.userService.login(loginUserDto);
-    res.cookie('jwt', token, { httpOnly: true });
+    res.cookie('jwt', token);
     return { id: user.id, role: user.role };
   }
 

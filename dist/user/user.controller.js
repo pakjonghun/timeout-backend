@@ -46,7 +46,7 @@ let UserController = class UserController {
     }
     async login(res, loginUserDto) {
         const { token, user } = await this.userService.login(loginUserDto);
-        res.cookie('jwt', token, { httpOnly: true });
+        res.cookie('jwt', token);
         return { id: user.id, role: user.role };
     }
     async me(user) {
