@@ -15,12 +15,11 @@ async function bootstrap() {
     app.use(cookieParser());
     app.enableCors({
         origin: (origin, callback) => {
-            console.log('origin', origin);
             const allowed = allowList.includes(origin);
             if (allowed)
                 callback(null, true);
             else
-                throw new common_1.UnauthorizedException('UnAuth Cors');
+                throw new common_1.UnauthorizedException('UnAccepted Cors');
         },
         credentials: true,
     });

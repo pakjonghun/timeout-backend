@@ -46,11 +46,10 @@ let UserController = class UserController {
     }
     async login(res, loginUserDto) {
         const { token, user } = await this.userService.login(loginUserDto);
-        res.cookie('jwt', token);
+        res.cookie('jwt', token, { httpOnly: true });
         return { id: user.id, role: user.role };
     }
     async me(user) {
-        console.log('me');
         if (!user)
             throw new common_1.UnauthorizedException('잘못된 쿠키 토큰 입니다.');
         return user;
