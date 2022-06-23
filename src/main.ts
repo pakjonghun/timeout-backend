@@ -19,7 +19,13 @@ async function bootstrap() {
       'http://www.fireking5997.com',
       'http://localhost:3000',
     ],
-    allowedHeaders: 'Origin',
+    allowedHeaders: [
+      'X-Requested-With',
+      'X-HTTP-Method-Override',
+      'Content-Type',
+      'Accept',
+      'origin',
+    ],
     credentials: true,
   });
   app.useGlobalPipes(
