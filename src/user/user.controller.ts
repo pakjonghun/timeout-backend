@@ -73,6 +73,7 @@ export class UserController {
   @Role('Any')
   @Get('me')
   async me(@GetUser() user: User) {
+    console.log('me');
     if (!user) throw new UnauthorizedException('잘못된 쿠키 토큰 입니다.');
     return user;
   }

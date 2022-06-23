@@ -4,7 +4,11 @@ import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const allowList = ['http://fireking5997.com', 'http://localhost:3000'];
+  const allowList = [
+    'http://fireking5997.com',
+    'http://localhost:3000',
+    process.env.BASE_URL,
+  ];
 
   const app = await NestFactory.create(AppModule);
 
