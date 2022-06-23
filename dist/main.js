@@ -10,9 +10,13 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
     app.use(cookieParser());
     app.enableCors({
-        origin: (origin) => {
+        origin: (origin, callback) => {
             console.log('origin', origin);
-            return allowList.includes(origin);
+            const allowed = allowList.includes(origin);
+            if (allowed)
+                callback(null, true);
+            else
+                throw new common_1.UnauthorizedException('UnAuth Cors');
         },
         credentials: true,
     });

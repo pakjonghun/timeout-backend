@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
@@ -12,9 +12,11 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: (origin) => {
+    origin: (origin, callback) => {
       console.log('origin', origin);
-      return allowList.includes(origin);
+      const allowed = allowList.includes(origin);
+      if (allowed) callback(null, true);
+      else throw new UnauthorizedException('UnAuth Cors');
     },
     credentials: true,
   });
