@@ -17,10 +17,9 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      console.log('origin', origin);
       const allowed = allowList.includes(origin);
       if (allowed) callback(null, true);
-      else throw new UnauthorizedException('UnAuth Cors');
+      else throw new UnauthorizedException('UnAccepted Cors');
     },
     credentials: true,
   });
