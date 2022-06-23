@@ -19,6 +19,7 @@ async function bootstrap() {
             'http://www.fireking5997.com',
             'http://localhost:3000',
         ],
+        allowedHeaders: 'origin',
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
