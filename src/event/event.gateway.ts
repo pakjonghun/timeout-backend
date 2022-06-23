@@ -20,8 +20,8 @@ import { SocketLoginDto } from './dtos/login.dto';
 @WebSocketGateway({
   cors: {
     origin: '*',
+    allowedHeaders: 'Origin',
     methods: ['GET', 'POST'],
-    credentials: true,
   },
 })
 export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
