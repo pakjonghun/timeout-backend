@@ -5,11 +5,12 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const cookieParser = require("cookie-parser");
 async function bootstrap() {
+    const allowList = ['http://fireking5997.com', 'http://localhost:3000'];
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.setGlobalPrefix('api');
     app.use(cookieParser());
     app.enableCors({
-        origin: 'http://fireking5997.com',
+        origin: (origin) => allowList.includes(origin),
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
