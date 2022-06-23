@@ -10,7 +10,10 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
     app.use(cookieParser());
     app.enableCors({
-        origin: (origin) => allowList.includes(origin),
+        origin: (origin) => {
+            console.log('origin', origin);
+            return allowList.includes(origin);
+        },
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
