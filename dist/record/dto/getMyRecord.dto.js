@@ -39,5 +39,9 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], GetMyRecordsDto.prototype, "endDate", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)({}, { message: '리패치 데이터는 숫자 입니다.' }),
+    __metadata("design:type", Number)
+], GetMyRecordsDto.prototype, "refetch", void 0);
 exports.GetMyRecordsDto = GetMyRecordsDto;
 //# sourceMappingURL=getMyRecord.dto.js.map

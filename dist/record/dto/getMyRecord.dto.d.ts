@@ -6,5 +6,6 @@ export declare class GetMyRecordsDto extends PagnationDto {
     searchTerm?: string;
     startDate?: string;
     endDate?: string;
+    refetch: number;
 }
 export {};

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Matches } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Matches } from 'class-validator';
 import { PagnationDto } from '../../common/dtos/pagnation.dto';
 
 type Sort = 'ASC' | 'DESC';
@@ -23,4 +23,7 @@ export class GetMyRecordsDto extends PagnationDto {
   @IsString({ message: '검색날짜는 문자열 입니다.' })
   @IsOptional()
   endDate?: string;
+
+  @IsNumber({}, { message: '리패치 데이터는 숫자 입니다.' })
+  refetch: number;
 }

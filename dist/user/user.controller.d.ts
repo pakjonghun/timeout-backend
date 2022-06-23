@@ -20,15 +20,15 @@ export declare class UserController {
     logout(res: Response): Promise<void>;
     login(res: Response, loginUserDto: LoginUserDto): Promise<{
         id: number;
-        role: "Client" | "Manager";
+        role: "Manager" | "Client";
     }>;
     me(user: User): Promise<User>;
     updateMyProfile(user: User, updateUserDto: UpdateUserDto): Promise<{
-        role?: "Client" | "Manager";
-        name?: string;
+        role?: "Manager" | "Client";
+        avatar?: string;
         email?: string;
         phone?: string;
-        avatar?: string;
+        name?: string;
         id: number;
     } & User>;
     updateMyPassword(user: User, updatePasswordDto: UpdatePasswordDto): Promise<User>;
@@ -37,11 +37,11 @@ export declare class UserController {
         password: string;
     } & User>;
     updateUserProfile(id: number, updateUserDto: UpdateUserDto): Promise<{
-        role?: "Client" | "Manager";
-        name?: string;
+        role?: "Manager" | "Client";
+        avatar?: string;
         email?: string;
         phone?: string;
-        avatar?: string;
+        name?: string;
         id: number;
     } & User>;
     findUser(id: number): Promise<User>;
