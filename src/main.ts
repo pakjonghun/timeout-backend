@@ -15,6 +15,8 @@ async function bootstrap() {
       process.env.URL,
       'http://fireking5997.com',
       'http://fireking5997.xyz',
+      'http://www.fireking5997.xyz',
+      'http://www.fireking5997.com',
       'http://localhost:3000',
     ],
     credentials: true,
