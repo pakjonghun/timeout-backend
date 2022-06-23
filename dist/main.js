@@ -19,7 +19,13 @@ async function bootstrap() {
             'http://www.fireking5997.com',
             'http://localhost:3000',
         ],
-        allowedHeaders: 'X-Requested-With,X-HTTP-Method-Override,Content-Type,Accept,Origin',
+        allowedHeaders: [
+            'X-Requested-With',
+            'X-HTTP-Method-Override',
+            'Content-Type',
+            'Accept',
+            'Origin',
+        ],
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
