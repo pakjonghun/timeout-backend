@@ -323,7 +323,7 @@ __decorate([
 ], EventGateway.prototype, "handleDeleteRecords", null);
 EventGateway = __decorate([
     (0, common_1.Injectable)(),
-    (0, websockets_1.WebSocketGateway)({
+    (0, websockets_1.WebSocketGateway)(8080, {
         cors: {
             origin: [
                 process.env.URL,

@@ -17,7 +17,7 @@ import { Repository } from 'typeorm';
 import { SocketLoginDto } from './dtos/login.dto';
 
 @Injectable()
-@WebSocketGateway({
+@WebSocketGateway(8080, {
   cors: {
     origin: [
       process.env.URL,
