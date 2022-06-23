@@ -18,14 +18,13 @@ async function bootstrap() {
         ],
         credentials: true,
     });
+    app.useGlobalPipes(new common_1.ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transformOptions: { enableImplicitConversion: true },
+        transform: true,
+    }));
+    await app.listen(process.env.PORT);
 }
-;
-app.useGlobalPipes(new common_1.ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transformOptions: { enableImplicitConversion: true },
-    transform: true,
-}));
-await app.listen(process.env.PORT);
 bootstrap();
 //# sourceMappingURL=main.js.map

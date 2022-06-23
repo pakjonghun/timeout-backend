@@ -17,7 +17,6 @@ async function bootstrap() {
       'http://localhost:3000',
     ],
     credentials: true,
-  },
   });
   app.useGlobalPipes(
     new ValidationPipe({
