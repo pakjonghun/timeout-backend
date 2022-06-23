@@ -13,6 +13,7 @@ async function bootstrap() {
             `${process.env.URL}:80`,
             `${process.env.URL}:8080`,
             process.env.URL,
+            'http://fireking5997.com',
             'http://fireking5997.xyz',
             'http://localhost:3000',
         ],
