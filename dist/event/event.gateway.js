@@ -323,15 +323,9 @@ __decorate([
 ], EventGateway.prototype, "handleDeleteRecords", null);
 EventGateway = __decorate([
     (0, common_1.Injectable)(),
-    (0, websockets_1.WebSocketGateway)(8080, {
+    (0, websockets_1.WebSocketGateway)({
         cors: {
-            origin: [
-                process.env.URL,
-                `${process.env.URL}:80`,
-                `${process.env.URL}:8080`,
-                'http://fireking5997.xyz',
-                'http://localhost:3000',
-            ],
+            origin: '*',
             methods: ['GET', 'POST'],
             credentials: true,
         },
