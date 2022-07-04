@@ -6,6 +6,7 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const allowList = [
     'http://fireking5997.com',
+    'http://www.fireking5997.com',
     'http://localhost:3000',
     process.env.BASE_URL,
   ];
